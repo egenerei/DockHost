@@ -1,0 +1,32 @@
+---
+- name: Packages
+  hosts: all
+  become: true
+  tasks:
+    - name: Install docker docker-compose
+      apt:
+        name:
+          - docker
+          - docker-compose
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+      notify:
+        - Start and enable docker service
+        - Start and enbale docker socket
+    - name: Remove dependencies that are no longer required and purge their configuration files
+      ansible.builtin.apt:
+        autoremove: yes
+        purge: true
+  handlers:
+    - name: Start and enable docker service
+      ansible.builtin.service:
+        name: docker.service
+        state: started
+        enabled: yes
+
+    - name: Start and enable docker socket
+      ansible.builtin.service:
+        name: docker.socket
+        state: started
+        enabled: yes

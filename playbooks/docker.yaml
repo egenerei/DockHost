@@ -1,0 +1,14 @@
+---
+- name: Docker
+  hosts: all
+  become: true
+  tasks:
+    - name: Copy try.yaml
+      ansible.builtin.copy:
+        src: ../docker
+        dest: /
+        mode: '0644'
+    # - name: Create and start services
+    #   community.docker.docker_compose_v2:
+    #     project_src: /docker
+    #     register: output

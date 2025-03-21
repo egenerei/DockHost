@@ -1,0 +1,6 @@
+---
+- name: Configure web server
+  hosts: webserver
+  become: true
+- import_playbook: playbooks/packages.yaml
+- import_playbook: playbooks/docker.yaml

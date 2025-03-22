@@ -1,16 +1,18 @@
 ```mermaid
-    graph TD;
-        A[Start] --> B[Ansible Provisions EC2 Instance]
-        B --> C[EC2 Runs Docker with 2 Containers]
-        C --> D[NGINX - Main Website]
-        C --> E[MySQL - User Credentials Storage]
-        D --> F[User Creates Account / Logs In]
-        F -->|Authenticated?| G{Yes}
-        F -->|Not Authenticated| H[Show Error & Retry] 
-        G --> I[User Redirected to Admin Panel]
-        I --> J[New Docker Strcture Created for User]
-        J --> K[NGINX - User Web Server]
-        J --> L[MySQL - User Database]
-        J --> O[Other services]
-        K --> M[User's Website Hosted]
-        M --> N[End]
+graph TD;
+    A[inicio] --> B[Ansible aprovisiona instancia EC2]
+    B --> C[EC2 ejecuta Docker con 2 contenedores]
+    C --> D[Nginx - sitio web principal]
+    D --> N["☁️ Internet ☁️"]
+    C --> E[MySQL - almacenamiento de credenciales]
+    D --> F[Usuario crea cuenta / inicia sesión]
+    F -->|¿Autenticado?| G{Sí}
+    F -->|No autenticado| H[Mostrar error & reintentar] 
+    G --> I[Usuario redirigido al panel de administración]
+    I --> J[Se crea nueva infraestructura Docker para el usuario]
+    J --> K[Nginx - servidor web del usuario]
+    J --> L[MySQL - base de datos del usuario]
+    K --> M[Sitio web del usuario en línea]
+    M -- "Servido por el contenedor Nginx principal a través de un subdominio" --> D
+
+

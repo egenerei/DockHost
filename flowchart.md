@@ -12,6 +12,7 @@ graph TD;
     I --> J[Se crea nueva infraestructura Docker para el usuario]
     J --> K[Nginx - servidor web del usuario]
     J --> L[MySQL - base de datos del usuario]
+    J --> O[Otros servicios]
     K --> M[Sitio web del usuario en línea]
     M -- "Servido por el contenedor Nginx principal a través de un subdominio" --> D
 

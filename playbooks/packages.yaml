@@ -1,19 +1,49 @@
 ---
-- name: Packages
+- name: Packages (Ubuntu 24 Jammy)
   hosts: all
   become: true
   tasks:
-    - name: Install docker docker-compose
+    - name: Install packages needed to install docker & docker-compose
       apt:
         name:
-          - docker
-          - docker-compose
+          - software-properties-common
         state: present
         update_cache: yes
         cache_valid_time: 3600
+
+    - name: Create keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add Docker repository
+      shell: |
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Install packages needed to install docker & docker-compose
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
       notify:
         - Start and enable docker service
         - Start and enbale docker socket
+
     - name: Remove dependencies that are no longer required and purge their configuration files
       ansible.builtin.apt:
         autoremove: yes

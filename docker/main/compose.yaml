@@ -6,11 +6,18 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./nginxContainer/nginxConf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginxContainer/website:/usr/share/nginx/html
+      - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - main_intranet
+
+  php:
+    image: php:fpm-alpine
+    container_name: php_main
+    volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
     networks:
-      - container_net
-
+      - main_intranet
 networks:
-  container_net:
+  main_intranet:
     driver: bridge

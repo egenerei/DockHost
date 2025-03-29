@@ -1,3 +1,4 @@
-##HOST from where we launch ansible
-- Install ansible-core latest, docker, docker-compose standalone (ubuntu, needs testing in other OSs)
+## HOST from where we launch ansible
+- Install ansible-core
 - Install ansible-galaxy collection install community.docker
+## Used Vagrant to create a testing environment

@@ -12,5 +12,5 @@
 
     - name: Create and start services
       community.docker.docker_compose_v2:
-        project_src: /docker
+        project_src: /docker/main
       register: output

@@ -3,3 +3,4 @@ stash
 Vagrantfile
 hosts
 ansible.cfg
+.vagrant

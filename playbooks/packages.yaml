@@ -42,7 +42,7 @@
         update_cache: yes
       notify:
         - Start and enable docker service
-        - Start and enbale docker socket
+        - Start and enable docker socket
 
     - name: Remove dependencies that are no longer required and purge their configuration files
       ansible.builtin.apt:

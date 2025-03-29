@@ -1,0 +1,16 @@
+services:
+  nginx_main:
+    image: nginx:latest
+    container_name: nginx_main
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginxContainer/nginxConf/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginxContainer/website:/usr/share/nginx/html
+    networks:
+      - container_net
+
+networks:
+  container_net:
+    driver: bridge

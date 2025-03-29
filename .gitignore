@@ -1,6 +1,7 @@
-.env
+*.env
 stash
 Vagrantfile
 hosts
 ansible.cfg
 .vagrant
+1.sh

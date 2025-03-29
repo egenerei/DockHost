@@ -11,13 +11,37 @@ services:
     networks:
       - main_intranet
 
-  php:
+  php_main:
     image: php:fpm-alpine
     container_name: php_main
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
     networks:
       - main_intranet
+
+  mysql_main:
+    image: mysql:latest
+    container_name: mysql_main
+    restart: always
+    privileged: true
+    env_file: 
+      - "./mysqlContainer/mysqlConf/mysql.env"
+    volumes:
+      - ./mysqlContainer/mysqlData:/var/lib/mysql
+    networks:
+      - main_intranet
+  
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin_main
+    env_file: 
+      - "./phpmyadminConf/phpmyadmin.env"
+    restart: always
+    ports:
+      - 8080:80
+    networks:
+      - main_intranet
+
 networks:
   main_intranet:
     driver: bridge

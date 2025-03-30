@@ -1,5 +1,5 @@
 *.env
-stash
+stash*
 Vagrantfile
 hosts
 ansible.cfg

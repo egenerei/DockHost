@@ -1,4 +1,5 @@
 <?php
+    phpinfo();
     $usuario = "root";
     $contraseña= "";
     $dbname = "client_db";
@@ -10,7 +11,7 @@
         $conexion->query($query);
         echo "Base creada";
         #Creacion de tablas
-        $query="USE club_ajedrez;
+        $query="USE $dbname;
                     CREATE TABLE IF NOT EXISTS JUGADORES (
                         IDENTIFICACION_JUGADOR VARCHAR(10) PRIMARY KEY,
                         NOMBRE VARCHAR(20),

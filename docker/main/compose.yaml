@@ -23,7 +23,6 @@ services:
     image: mysql:latest
     container_name: mysql_main
     restart: always
-    privileged: true
     env_file: 
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:

@@ -1,0 +1,26 @@
+FROM php:fpm-alpine
+
+# Install required dependencies
+RUN apk add --no-cache \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    tzdata \
+    icu-dev \
+    g++ \
+    make \
+    autoconf \
+    libzip-dev
+
+# Configure and install GD with JPEG and FreeType support
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl
+
+# Enable extensions (optional, not needed for built-in ones)
+RUN docker-php-ext-enable mysqli pdo_mysql mbstring xml zip bcmath exif intl
+
+WORKDIR /usr/share/nginx/html

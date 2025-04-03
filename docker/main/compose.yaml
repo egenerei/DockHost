@@ -11,8 +11,16 @@ services:
     networks:
       - main_intranet
 
+  # php_main:
+  #   image: php:fpm-alpine
+  #   container_name: php_main
+  #   volumes:
+  #     - ./nginxContainer/website:/usr/share/nginx/html
+  #   networks:
+  #     - main_intranet
+
   php_main:
-    image: php:fpm-alpine
+    build: ./php-fpmConf/
     container_name: php_main
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html

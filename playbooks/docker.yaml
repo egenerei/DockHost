@@ -10,7 +10,7 @@
         dest: /
         mode: '0644'
 
-    - name: Create and start services
+    - name: Create and start main services
       community.docker.docker_compose_v2:
         project_src: /docker/main
       register: output

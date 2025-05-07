@@ -38,6 +38,7 @@
           - containerd.io
           - docker-buildx-plugin
           - docker-compose-plugin
+          - curl
         state: present
         update_cache: yes
       notify:
@@ -48,6 +49,8 @@
       ansible.builtin.apt:
         autoremove: yes
         purge: true
+
+    #Add in the future name: Ionos Dynamic DNS
   handlers:
     - name: Start and enable docker service
       ansible.builtin.service:

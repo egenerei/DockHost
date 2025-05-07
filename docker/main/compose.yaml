@@ -7,21 +7,19 @@ services:
       - 443:443
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
+      - ./nginxContainer/certs:/etc/nginx/ssl
       - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php_main
     networks:
       - main_intranet
-
-  # php_main:
-  #   image: php:fpm-alpine
-  #   container_name: php_main
-  #   volumes:
-  #     - ./nginxContainer/website:/usr/share/nginx/html
-  #   networks:
-  #     - main_intranet
+      - client_intranet
 
   php_main:
     build: ./php-fpmConf/
     container_name: php_main
+    env_file: 
+      - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
     networks:
@@ -37,7 +35,7 @@ services:
       - ./mysqlContainer/mysqlData:/var/lib/mysql
     networks:
       - main_intranet
-  
+
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin_main
@@ -49,6 +47,14 @@ services:
     networks:
       - main_intranet
 
+  nginxtest:
+    image: nginx:latest
+    container_name: nginxtest
+    networks:
+      - client_intranet
+
 networks:
   main_intranet:
+    driver: bridge
+  client_intranet:
     driver: bridge

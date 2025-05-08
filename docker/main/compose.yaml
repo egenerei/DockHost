@@ -47,12 +47,6 @@ services:
     networks:
       - main_intranet
 
-  nginxtest:
-    image: nginx:latest
-    container_name: nginxtest
-    networks:
-      - client_intranet
-
 networks:
   main_intranet:
     driver: bridge

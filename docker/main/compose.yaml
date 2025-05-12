@@ -2,6 +2,7 @@ services:
   nginx_main:
     image: nginx:latest
     container_name: nginx_main
+    restart: always
     ports:
       - 80:80
       - 443:443
@@ -18,6 +19,7 @@ services:
   php_main:
     build: ./php-fpmConf/
     container_name: php_main
+    restart: always
     env_file: 
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
@@ -39,11 +41,12 @@ services:
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin_main
-    env_file: 
-      - "./phpmyadminConf/phpmyadmin.env"
     restart: always
     ports:
       - 8080:80
+    depends_on: mysql_main
+    env_file: 
+      - "./phpmyadminConf/phpmyadmin.env"
     networks:
       - main_intranet
 

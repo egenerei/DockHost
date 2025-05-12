@@ -11,6 +11,7 @@ services:
       main_client_intranet:
         aliases:
           - nginxtest2.egenerei.es
+
   filemanager:
     image: filebrowser/filebrowser
     restart: always
@@ -20,6 +21,7 @@ services:
       main_client_intranet:
         aliases:
           - files.nginxtest2.egenerei.es
+
 networks:
   main_client_intranet:
     external: true

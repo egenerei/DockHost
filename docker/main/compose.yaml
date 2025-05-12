@@ -44,7 +44,8 @@ services:
     restart: always
     ports:
       - 8080:80
-    depends_on: mysql_main
+    depends_on: 
+      - mysql_main
     env_file: 
       - "./phpmyadminConf/phpmyadmin.env"
     networks:

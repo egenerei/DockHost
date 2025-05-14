@@ -20,7 +20,7 @@ services:
     build: ./php-fpmConf/
     container_name: php_main
     restart: always
-    env_file: 
+    env_file:
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
@@ -31,7 +31,7 @@ services:
     image: mysql:latest
     container_name: mysql_main
     restart: always
-    env_file: 
+    env_file:
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
       - ./mysqlContainer/mysqlData:/var/lib/mysql
@@ -44,9 +44,9 @@ services:
     restart: always
     ports:
       - 8080:80
-    depends_on: 
+    depends_on:
       - mysql_main
-    env_file: 
+    env_file:
       - "./phpmyadminConf/phpmyadmin.env"
     networks:
       - main_intranet

@@ -2,7 +2,6 @@
 services:
   nginxtest2:
     image: nginx:latest
-    container_name: nginxtest2
     restart: always
     volumes:
       - ./website:/usr/share/nginx/html

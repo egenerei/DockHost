@@ -12,28 +12,40 @@
         mode: '0755'
         content: |
           #!/bin/bash
-          set -euo pipefail
 
-          BASE_DIR="/docker/clients"
+          WATCH_DIR="/docker/clients"
+          LOG_FILE="/docker/inotify-docker.log"
+          MAX_RETRIES=6     # Retry for 1 minute (6 x 10s)
+          SLEEP_INTERVAL=10
 
-          # Initial compose up for existing compose.yaml files
-          for dir in "$BASE_DIR"/*/; do
-              COMPOSE_FILE="${dir}compose.yaml"
-              if [[ -f "$COMPOSE_FILE" ]]; then
-                  echo "[INIT] Starting docker compose in $dir"
-                  docker compose -f "$COMPOSE_FILE" up -d
+          inotifywait -m -e create --format "%f" "$WATCH_DIR" | while read NEW_ENTRY; do
+              NEW_PATH="$WATCH_DIR/$NEW_ENTRY"
+
+              # Only proceed if it's a directory
+              if [ -d "$NEW_PATH" ]; then
+                  echo "$(date) - Detected new directory: $NEW_PATH" >> "$LOG_FILE"
+
+                  ATTEMPT=1
+                  while [ $ATTEMPT -le $MAX_RETRIES ]; do
+                      if [ -f "$NEW_PATH/compose.yaml" ] || [ -f "$NEW_PATH/docker-compose.yml" ]; then
+                          echo "$(date) - Found compose file in $NEW_PATH (attempt $ATTEMPT)" >> "$LOG_FILE"
+                          (
+                              cd "$NEW_PATH"
+                              docker compose up -d >> "$LOG_FILE" 2>&1
+                          )
+                          break
+                      else
+                          echo "$(date) - Compose file not found in $NEW_PATH (attempt $ATTEMPT)" >> "$LOG_FILE"
+                          sleep "$SLEEP_INTERVAL"
+                          ((ATTEMPT++))
+                      fi
+                  done
+
+                  if [ $ATTEMPT -gt $MAX_RETRIES ]; then
+                      echo "$(date) - Failed to find compose file in $NEW_PATH after $MAX_RETRIES attempts" >> "$LOG_FILE"
+                  fi
               fi
           done
-
-          # Monitor for changes to compose.yaml or compose.yml
-          inotifywait -m -e close_write,create,move --format '%w%f' --recursive "$BASE_DIR" | while read -r FILE; do
-              if [[ "$FILE" =~ compose\.ya?ml$ ]]; then
-                  DIR=$(dirname "$FILE")
-                  echo "[WATCH] Detected change in $FILE, running docker compose up -d in $DIR"
-                  docker compose -f "$FILE" up -d
-              fi
-          done
-
 
     - name: Install compose-watcher systemd service
       copy:
@@ -43,15 +55,15 @@
         mode: '0644'
         content: |
           [Unit]
-          Description=Docker Compose Watch Service
-          After=docker.service
+          Description=Inotify Docker Compose Watcher
+          After=network.target docker.service
           Requires=docker.service
 
           [Service]
-          Type=simple
           ExecStart=/usr/local/bin/docker-compose-watch.sh
           Restart=always
           RestartSec=5
+          User=root
 
           [Install]
           WantedBy=multi-user.target

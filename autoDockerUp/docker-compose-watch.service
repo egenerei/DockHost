@@ -1,13 +1,12 @@
 [Unit]
-Description=Docker Compose Watch Service
-After=docker.service
+Description=Docker Compose Trigger Watcher
+After=network.target docker.service
 Requires=docker.service
 
 [Service]
-Type=simple
 ExecStart=/usr/local/bin/docker-compose-watch.sh
-Restart=always
-RestartSec=5
+Restart=on-failure
+User=root
 
 [Install]
 WantedBy=multi-user.target

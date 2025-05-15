@@ -24,6 +24,8 @@ services:
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
+      - ../template/testNginx:/clients
+    command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
     networks:
       - main_intranet
 
@@ -50,6 +52,18 @@ services:
       - "./phpmyadminConf/phpmyadmin.env"
     networks:
       - main_intranet
+
+  filemanager2:
+    image: filebrowser/filebrowser
+    restart: always
+    volumes:
+      - ./nginxContainer/website:/srv
+      - ../template/testNginx:/srv/test
+      - ../clients:/srv/clients
+    networks:
+      main_intranet:
+        aliases:
+          - files.egenerei.es
 
 networks:
   main_intranet:

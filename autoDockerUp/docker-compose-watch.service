@@ -1,0 +1,13 @@
+[Unit]
+Description=Docker Compose Watch Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/docker-compose-watch.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

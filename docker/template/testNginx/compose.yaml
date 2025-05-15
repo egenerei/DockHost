@@ -1,6 +1,6 @@
 # test
 services:
-  nginxtest2:
+  nginxtest:
     image: nginx:latest
     restart: always
     volumes:
@@ -9,7 +9,7 @@ services:
     networks:
       main_client_intranet:
         aliases:
-          - nginxtest2.egenerei.es
+          - nginxtest.egenerei.es
 
   filemanager:
     image: filebrowser/filebrowser
@@ -19,7 +19,7 @@ services:
     networks:
       main_client_intranet:
         aliases:
-          - files.nginxtest2.egenerei.es
+          - files.nginxtest.egenerei.es
 
 networks:
   main_client_intranet:

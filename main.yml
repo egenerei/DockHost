@@ -4,3 +4,4 @@
   become: true
 - import_playbook: playbooks/packages.yaml
 - import_playbook: playbooks/docker.yaml
+- import_playbook: playbooks/autoDockerUp.yaml

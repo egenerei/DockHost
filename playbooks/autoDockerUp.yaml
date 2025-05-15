@@ -1,0 +1,67 @@
+---
+- name: Automatic client Docker infrastructure deployment
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure docker-compose-watch.sh script is installed
+      copy:
+        dest: /usr/local/bin/docker-compose-watch.sh
+        owner: root
+        group: root
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          set -euo pipefail
+
+          BASE_DIR="/docker/clients"
+
+          # Initial compose up for existing compose.yaml files
+          for dir in "$BASE_DIR"/*/; do
+              COMPOSE_FILE="${dir}compose.yaml"
+              if [[ -f "$COMPOSE_FILE" ]]; then
+                  echo "[INIT] Starting docker compose in $dir"
+                  docker compose -f "$COMPOSE_FILE" up -d
+              fi
+          done
+
+          # Monitor for changes to compose.yaml or compose.yml
+          inotifywait -m -e close_write,create,move --format '%w%f' --recursive "$BASE_DIR" | while read -r FILE; do
+              if [[ "$FILE" =~ compose\.ya?ml$ ]]; then
+                  DIR=$(dirname "$FILE")
+                  echo "[WATCH] Detected change in $FILE, running docker compose up -d in $DIR"
+                  docker compose -f "$FILE" up -d
+              fi
+          done
+
+
+    - name: Install compose-watcher systemd service
+      copy:
+        dest: /etc/systemd/system/docker-compose-watch.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Docker Compose Watch Service
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/local/bin/docker-compose-watch.sh
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start compose-watcher
+      systemd:
+        name: docker-compose-watch.service
+        enabled: yes
+        state: started

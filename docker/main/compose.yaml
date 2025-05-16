@@ -24,7 +24,7 @@ services:
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
-      - ../template/testNginx:/clients
+      - ../clients:/clients
     command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
     networks:
       - main_intranet

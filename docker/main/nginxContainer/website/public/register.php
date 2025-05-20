@@ -185,10 +185,15 @@ HTTPD;
 
     log_info("Wrote config files for " . htmlspecialchars($safeUsername, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
 
-    echo '<!DOCTYPE html><html><head>';
-    echo '</head><body>';
-    echo '<a href="http://files'.$safeUsername.'.egenerei.es">Administration</a>';
-    echo '</body></html>';
+    echo '<!DOCTYPE html>
+          <html>
+              <head>
+                <link rel="stylesheet" href="../css/style.css">
+              </head>
+            <body>
+              <a href="http://files'.$safeUsername.'.egenerei.es" class="button">Administration</a>
+            </body>
+          </html>';
     exit;
 
     // header("Location: https://files".$safeUsername.".egenerei.es/");

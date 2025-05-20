@@ -5,13 +5,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// --- Logging setup ---
-$logFile = '../logs/dockhost_register.log'; // Ensure writable
+# --- Logging setup ---
+$logFile = '../logs/dockhost_register.log'; # Ensure writable
 
 function log_info($msg) {
     global $logFile;
     $timestamp = date("Y-m-d H:i:s");
-    // Sanitize for logs in case they get viewed in a browser
+    # Sanitize for logs in case they get viewed in a browser
     $safeMsg = htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     file_put_contents($logFile, "[$timestamp] $safeMsg\n", FILE_APPEND);
 }
@@ -20,13 +20,13 @@ require_once '../includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Check input presence
+    # Check input presence
     if (empty($_POST['username']) || empty($_POST['password'])) {
         log_info("Missing username or password");
         die("Username or password not provided.");
     }
 
-    // Sanitize and normalize username
+    # Sanitize and normalize username
     $rawUsername = strtolower(trim($_POST['username']));
     $safeUsername = preg_replace('/[^a-z0-9_-]/', '', $rawUsername);
 
@@ -35,10 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Sanitized username is empty or invalid.");
     }
 
-    // Hash password securely
+    # Hashing password securely
     $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    // Store in DB
+    # Store in DB
     try {
         $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
         $stmt->execute([$rawUsername, $hash]);
@@ -48,11 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Database error: " . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
     }
 
-    // Setup paths
+    # Setup path for user
     $basePath = '/clients';
     $userDir = $basePath . '/' . $safeUsername;
 
-    // Directory creation
+    # User Directory creation
     if (!is_dir($userDir)) {
         if (!mkdir($userDir, 0755, true)) {
             log_info("Failed to create directory: " . htmlspecialchars($userDir, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
@@ -68,9 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         log_info("Directory not writable: " . htmlspecialchars($userDir, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
         die("Directory exists but is not writable: $userDir");
     }
-
-    // Compose YAML and NGINX config — these use strictly sanitized $safeUsername, so no htmlspecialchars needed here
-    // (since these are not output to HTML but config files)
 
     $composeYamlContent = <<<YAML
 services:
@@ -130,13 +127,10 @@ server {
         expires off;
     }
 
-    location /files/ {
-        proxy_pass http://files{$safeUsername}.es:80/;
-    }
 }
 PHP;
 
-    // Write files
+    #User files creation & register in log
     $composePath = $userDir . '/compose.yaml';
     $confPath = $userDir . '/php.conf';
 
@@ -152,26 +146,30 @@ PHP;
 
     log_info("Wrote config files for " . htmlspecialchars($safeUsername, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
 
-    // Redirect
-    header('Location: login.php');
+    echo '<!DOCTYPE html><html><head>';
+    echo '</head><body>';
+    echo '<a href="http://files'.$safeUsername.'.egenerei.es">Administration</a>';
+    echo '</body></html>';
     exit;
+
+    // header("Location: https://files".$safeUsername.".egenerei.es/");
+    // exit;
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register - DockHost</title>
-    <link href="/css/tailwind.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Register - DockHost</title>
+  <link rel="stylesheet" href="../css/style.css">
 </head>
-<body class="bg-gray-100">
-    <div class="min-h-screen flex items-center justify-center">
-        <form method="post" class="bg-white p-6 rounded shadow w-96">
-            <h2 class="text-2xl mb-4">Register</h2>
-            <input type="text" name="username" placeholder="Username" class="w-full p-2 mb-4 border rounded" required>
-            <input type="password" name="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">Register</button>
-        </form>
-    </div>
+<body>
+  <form method="post">
+    <h2>Register</h2>
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Register</button>
+  </form>
 </body>
 </html>

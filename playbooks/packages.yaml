@@ -51,7 +51,6 @@
         autoremove: yes
         purge: true
 
-    #Add in the future name: Ionos Dynamic DNS
   handlers:
     - name: Start and enable docker service
       ansible.builtin.service:

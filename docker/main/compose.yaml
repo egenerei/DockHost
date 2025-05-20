@@ -36,7 +36,7 @@ services:
     env_file:
       - "./mysqlContainer/mysqlConf/mysql.env"
     volumes:
-      - ./mysqlContainer/mysqlData:/var/lib/mysql
+      - db:/var/lib/mysql
     networks:
       - main_intranet
 
@@ -53,17 +53,20 @@ services:
     networks:
       - main_intranet
 
-  filemanager2:
+  filemanager:
     image: filebrowser/filebrowser
     restart: always
     volumes:
       - ./nginxContainer/website:/srv
-      - ../template/testNginx:/srv/test
       - ../clients:/srv/clients
+      - db:/db_files
     networks:
       main_intranet:
         aliases:
           - files.egenerei.es
+
+volumes:
+  db:
 
 networks:
   main_intranet:

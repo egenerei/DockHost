@@ -97,6 +97,7 @@ services:
       - ./.filebrowser.json:/.filebrowser.json
     networks:
       {$safeUsername}_intranet:
+    entrypoint: ["./filebrowser", "--noauth"]
 
 networks:
   main_client_intranet:

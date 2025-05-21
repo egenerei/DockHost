@@ -75,8 +75,13 @@ services:
     image: httpd:latest
     restart: always
     volumes:
-      - website:/usr/local/apache2/htdocs/
+      - website:/usr/local/apache2/
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
+    command: >
+      sh -c "
+        htpasswd -cbB /usr/local/apache2/conf/.htpasswd {$safeUsername} {$_POST['password']} &&
+        httpd-foreground
+      "
     networks:
       {$safeUsername}_intranet:
       main_client_intranet:
@@ -176,22 +181,22 @@ AddType application/x-gzip .gz .tgz
     ProxyPreserveHost On
     ProxyRequests Off
 
-    # Redirect /admin to /admin/
-    RedirectMatch 301 ^/admin$ /admin/
+    # Reverse proxy for /admin
+    <Location "/admin/">
+        AuthType Basic
+        AuthName "Restricted Admin Area"
+        AuthUserFile "/usr/local/apache2/conf/.htpasswd"
+        Require valid-user
 
-    # Reverse proxy
-    ProxyPass "/admin/" "http://files{$safeUsername}:80/admin/"
-    ProxyPassReverse "/admin/" "http://files{$safeUsername}:80/admin/"
-    ProxyPassReverseCookiePath /admin /admin
-
-    <Location /admin/>
+        ProxyPass "http://files{$safeUsername}:80/admin/"
+        ProxyPassReverse "http://files{$safeUsername}:80/admin/"
         ProxyPassReverseCookiePath /admin /admin
-        Require all granted
     </Location>
 
     ErrorLog /proc/self/fd/2
     CustomLog /proc/self/fd/1 combined
 </VirtualHost>
+
 
 HTTPD;
 
@@ -202,7 +207,9 @@ HTTPD;
   "address": "",
   "log": "stdout",
   "database": "/database.db",
-  "root": "/srv"
+  "root": "/srv",
+  "username": "{$safeUsername}",
+  "password": "{$hash}"
 }
 JSON;
 

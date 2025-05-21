@@ -190,7 +190,7 @@ AddType application/x-gzip .gz .tgz
 
         ProxyPass "http://files{$safeUsername}:80/admin/"
         ProxyPassReverse "http://files{$safeUsername}:80/admin/"
-        ProxyPassReverseCookiePath /admin /admin
+        ProxyPassReverseCookiePath /admin /admin/
     </Location>
 
     ErrorLog /proc/self/fd/2

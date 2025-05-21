@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     # Hashing password securely
-    $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $hash = password_hash($_POST['password'], PASSWORD_BCRYPT);
 
     # Store in DB
     try {
@@ -78,23 +78,26 @@ services:
       - website:/usr/local/apache2/htdocs/
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
     networks:
+      {$safeUsername}_intranet:
       main_client_intranet:
         aliases:
           - {$safeUsername}.egenerei.es
 
   filemanager:
     image: filebrowser/filebrowser
+    container_name: files{$safeUsername}
     restart: always
     volumes:
       - website:/srv
+      - ./.filebrowser.json:/.filebrowser.json
     networks:
-      main_client_intranet:
-        aliases:
-          - files{$safeUsername}.egenerei.es
+      {$safeUsername}_intranet:
 
 networks:
   main_client_intranet:
     external: true
+  {$safeUsername}_intranet:
+    driver: bridge
 
 volumes:
   website:
@@ -129,6 +132,8 @@ LoadModule autoindex_module modules/mod_autoindex.so
 LoadModule dir_module modules/mod_dir.so
 LoadModule alias_module modules/mod_alias.so
 LoadModule rewrite_module modules/mod_rewrite.so
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
 User www-data
 Group www-data
 ServerAdmin you@example.com
@@ -150,7 +155,7 @@ LogLevel warn
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
 CustomLog /proc/self/fd/1 common
-<IfModule logio_module>
+<IfModule logio_module>$safeUsername
     LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
 </IfModule>
 ScriptAlias /cgi-bin/ "/usr/local/apache2/cgi-bin/"
@@ -165,13 +170,46 @@ AddType application/x-gzip .gz .tgz
 <IfModule proxy_html_module>
     Include conf/extra/proxy-html.conf
 </IfModule>
+<VirtualHost *:80>
+    ServerName {$safeUsername}.egenerei.es
+
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    # Redirect /admin to /admin/
+    RedirectMatch 301 ^/admin$ /admin/
+
+    # Reverse proxy
+    ProxyPass "/admin/" "http://files{$safeUsername}:80/admin/"
+    ProxyPassReverse "/admin/" "http://files{$safeUsername}:80/admin/"
+    ProxyPassReverseCookiePath /admin /admin
+
+    <Location /admin/>
+        ProxyPassReverseCookiePath /admin /admin
+        Require all granted
+    </Location>
+
+    ErrorLog /proc/self/fd/2
+    CustomLog /proc/self/fd/1 combined
+</VirtualHost>
 
 HTTPD;
 
+    $fileBrowserContent = <<<JSON
+{
+  "port": 80,
+  "baseURL": "/admin",
+  "address": "",
+  "log": "stdout",
+  "database": "/database.db",
+  "root": "/srv"
+}
+JSON;
 
     #User files creation & register in log
     $composePath = $userDir . '/compose.yaml';
     $confPath = $userDir . '/httpd.conf';
+    $fileBrowserPath = $userDir . '/.filebrowser.json';
 
     if (file_put_contents($composePath, $composeYamlContent) === false) {
         log_info("Failed to write compose.yaml for " . htmlspecialchars($safeUsername, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
@@ -180,6 +218,10 @@ HTTPD;
 
     if (file_put_contents($confPath, $httpdConfContent) === false) {
         log_info("Failed to write php.conf for " . htmlspecialchars($safeUsername, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        die("Failed to write to $confPath");
+    }
+    if (file_put_contents($fileBrowserPath, $fileBrowserContent) === false) {
+        log_info("Failed to write .filebrowser.json for " . htmlspecialchars($safeUsername, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
         die("Failed to write to $confPath");
     }
 
@@ -191,13 +233,10 @@ HTTPD;
                 <link rel="stylesheet" href="../css/style.css">
               </head>
             <body>
-              <a href="http://files'.$safeUsername.'.egenerei.es" class="button">Administration</a>
+              <a href="http://'.$safeUsername.'.egenerei.es/admin" class="button">Administration</a>
             </body>
           </html>';
     exit;
-
-    // header("Location: https://files".$safeUsername.".egenerei.es/");
-    // exit;
 }
 ?>
 

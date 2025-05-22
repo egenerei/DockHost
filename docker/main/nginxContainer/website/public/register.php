@@ -62,7 +62,7 @@ services:
     image: php:8.2-apache
     restart: always
     volumes:
-      - website:/var/www/html
+      - ./website:/var/www/html
       - ./httpd.conf:/etc/apache2/sites-available/000-default.conf
     command: >
       sh -c "a2enmod proxy proxy_http rewrite headers && htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']} && apache2-foreground"
@@ -76,7 +76,7 @@ services:
     container_name: files{$safeUsername}
     restart: always
     volumes:
-      - website:/srv
+      - ./website:/srv
       - ./.filebrowser.json:/.filebrowser.json
     networks:
       {$safeUsername}_intranet:
@@ -108,9 +108,6 @@ networks:
   {$safeUsername}_intranet:
     driver: bridge
 volumes:
-  website:
-    labels:
-      - tenant={$safeUsername}
   db:
     labels:
       - tenant={$safeUsername}

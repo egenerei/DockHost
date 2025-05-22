@@ -81,6 +81,27 @@ services:
     networks:
       {$safeUsername}_intranet:
     entrypoint: ["./filebrowser", "--noauth"]
+  mysql:
+    image: mysql:latest
+    container_name: mysql{$safeUsername}
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD={$_POST['password']}
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      {$safeUsername}_intranet:
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin{$safeUsername}
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      - PMA_HOST=mysql{$safeUsername}
+      - PMA_ABSOLUTE_URI=https://{$safeUsername}.egenerei.es/admin/phpmyadmin/
+    networks:
+      {$safeUsername}_intranet:
 networks:
   main_client_intranet:
     external: true
@@ -90,45 +111,47 @@ volumes:
   website:
     labels:
       - tenant={$safeUsername}
+  db:
+    labels:
+      - tenant={$safeUsername}
 YAML;
     $httpdConfContent = <<<HTTPD
 <VirtualHost *:80>
     ServerName {$safeUsername}.egenerei.es
     DocumentRoot /var/www/html
-
     <Directory /var/www/html>
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
-
     <Files ".ht*">
         Require all denied
     </Files>
-
-    # Auth first, applied in <Location>
     <Location "/admin/">
         AuthType Basic
         AuthName "Restricted Admin Area"
         AuthUserFile "/etc/apache2/.htpasswd"
         Require valid-user
     </Location>
-
-    # Proxy last, applied globally
+    RedirectMatch 301 ^/admin/phpmyadmin$ /admin/phpmyadmin/
+    RedirectMatch 301 ^/admin/files$ /admin/files/
     ProxyPreserveHost On
-    ProxyPass /admin/ http://files{$safeUsername}:80/admin/
-    ProxyPassReverse /admin/ http://files{$safeUsername}:80/admin/
-    ProxyPassReverseCookiePath /admin /admin/
-
+    ProxyPass /admin/phpmyadmin/ http://phpmyadmin{$safeUsername}:80/
+    ProxyPassReverse /admin/phpmyadmin/ http://phpmyadmin{$safeUsername}:80/
+    ProxyPassReverseCookiePath /admin/phpmyadmin /admin/phpmyadmin
+    ProxyPass /admin/files/ http://files{$safeUsername}:80/admin/files/
+    ProxyPassReverse /admin/files/ http://files{$safeUsername}:80/admin/files/
+    ProxyPassReverseCookiePath /admin/files /admin/files
     ErrorLog /proc/self/fd/2
     CustomLog /proc/self/fd/1 combined
 </VirtualHost>
+
 HTTPD;
 
     $fileBrowserContent = <<<JSON
 {
   "port": 80,
-  "baseURL": "/admin",
+  "baseURL": "/admin/files",
   "address": "",
   "log": "stdout",
   "database": "/database.db",

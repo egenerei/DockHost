@@ -5,4 +5,5 @@ hosts
 ansible.cfg
 .vagrant
 1.sh
-certs
+*.key
+*.cer

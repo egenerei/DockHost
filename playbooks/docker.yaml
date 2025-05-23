@@ -14,8 +14,3 @@
       community.docker.docker_compose_v2:
         project_src: /docker/main
       register: output
-
-    # - name: Create and start test services
-    #   community.docker.docker_compose_v2:
-    #     project_src: /docker/template/testNginx
-    #   register: output

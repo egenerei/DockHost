@@ -34,7 +34,7 @@ services:
     container_name: mysql_main
     restart: always
     env_file:
-      - "./mysqlContainer/mysqlConf/mysql.env"
+      - "./mysqlContainer/mysql.env"
     volumes:
       - db:/var/lib/mysql
     networks:

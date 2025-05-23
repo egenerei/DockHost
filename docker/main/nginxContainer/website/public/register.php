@@ -63,6 +63,7 @@ services:
     restart: always
     volumes:
       - ./website:/var/www/html
+      - ./website/admin:/var/www/html/admin:ro
       - ./httpd.conf:/etc/apache2/sites-available/000-default.conf
     command: >
       sh -c "a2enmod proxy proxy_http rewrite headers && htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']} && apache2-foreground"
@@ -77,6 +78,7 @@ services:
     restart: always
     volumes:
       - ./website:/srv
+      - ./website/admin:/var/www/html/admin:ro
       - ./.filebrowser.json:/.filebrowser.json
     networks:
       {$safeUsername}_intranet:

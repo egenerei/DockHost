@@ -48,8 +48,8 @@ services:
       - 8080:80
     depends_on:
       - mysql_main
-    env_file:
-      - "./phpmyadminConf/phpmyadmin.env"
+    environment:
+      - PMA_HOST=mysql_main
     networks:
       - main_intranet
 

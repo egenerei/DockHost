@@ -71,7 +71,7 @@ services:
       {$safeUsername}_intranet:
       main_client_intranet:
         aliases:
-          - {$safeUsername}.egenerei.es
+          - {$safeUsername}.{$domain}
   filemanager:
     image: filebrowser/filebrowser
     container_name: files{$safeUsername}
@@ -101,7 +101,7 @@ services:
       - mysql
     environment:
       - PMA_HOST=mysql{$safeUsername}
-      - PMA_ABSOLUTE_URI=https://{$safeUsername}.egenerei.es/admin/phpmyadmin/
+      - PMA_ABSOLUTE_URI=https://{$safeUsername}.{$domain}/admin/phpmyadmin/
     networks:
       {$safeUsername}_intranet:
 networks:
@@ -116,7 +116,7 @@ volumes:
 YAML;
     $httpdConfContent = <<<HTTPD
 <VirtualHost *:80>
-    ServerName {$safeUsername}.egenerei.es
+    ServerName {$safeUsername}.{$domain}
     DocumentRoot /var/www/html
     <Directory /var/www/html>
         Options -Indexes +FollowSymLinks
@@ -182,7 +182,7 @@ JSON;
                 <link rel="stylesheet" href="../css/style.css">
               </head>
             <body>
-              <a href="http://'.$safeUsername.'.egenerei.es/admin/" class="button">Administration</a>
+              <a href="http://'.$safeUsername.'.$domain/admin/" class="button">Administration</a>
             </body>
           </html>';
     exit;

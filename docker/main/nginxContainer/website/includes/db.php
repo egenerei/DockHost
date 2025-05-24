@@ -4,6 +4,7 @@ $db_user_password = getenv('MYSQL_ROOT_PASSWORD');
 $db_name = getenv('MYSQL_DATABASE');
 $db_server = "mysql_main";
 $db_server_port = 3306;
+$domain = getenv('DOMAIN');
 try {
     // Connect without specifying dbname to create database if missing
     $pdo = new PDO("mysql:host=$db_server;port=$db_server_port;", $db_user, $db_user_password, [

@@ -1,7 +1,7 @@
 <?php
 $db_user = "root";
 $db_user_password = getenv('MYSQL_ROOT_PASSWORD');
-$db_name = getenv('MYSQL_DATABASE');
+$db_name = getenv('MYSQL_ROOT_DATABASE');
 $db_server = "mysql_main";
 $db_server_port = 3306;
 $domain = getenv('DOMAIN');

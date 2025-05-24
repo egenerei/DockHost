@@ -7,3 +7,8 @@ ansible.cfg
 1.sh
 *.key
 *.cer
+docker/main/compose.yaml
+docker/main/nginxContainer/website/logs
+docker/main/nginxContainer/nginxConf
+docker/main/fileBrowserContainer
+docker/clients

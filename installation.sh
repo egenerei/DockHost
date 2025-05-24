@@ -24,20 +24,23 @@ fi
 
 echo "htpasswd is installed"
 
-# Prompt for server IP and SSH port
+# Prompt for the server IP and SSH port 
 read -rp "Enter the server IP address to install DockHost: " SERVER_IP
 read -rp "Enter the SSH port of the server (default 22): " SSH_PORT
 SSH_PORT=${SSH_PORT:-22}  # Default to 22 if input is empty
-# Prompt for the remote user with sudo permissions
+# Prompt for the server remote user with sudo permissions
 read -rp "Enter the SSH user with sudo permissions on the server (e.g., ubuntu): " REMOTE_USER
-# Prompt for the SSH private key file path
+# Prompt for the SSH private key file path (not required but recommended)
 read -rp "Enter the path to your SSH private key on this system (default: ~/.ssh/id_ed25519): " PRIVATE_KEY
 PRIVATE_KEY=${PRIVATE_KEY:-~/.ssh/id_ed25519}  # Default if blank
-read -rp "Main clients database name for DockHost : " DB_NAME
+# Database paramenters for the clients database
+read -rp "Main clients database name for DockHost: " DB_NAME
 read -rsp "Main client database password for DockHost: " DB_PASSWORD; echo
+# Filebrowser parameters for accesing all the app files and the clients' too
 read -rp "Enter username for the main filemanager: " USERNAME
 read -rsp "Enter password the main filemanager: " PASSWORD; echo
-read -rp "Domain name: " DOMAIN
+#Domain settings for the project
+read -rp "Domain name (e.g example.com): " DOMAIN
 read -rp "Do you have an SSL certificate and private key for your domain? [y/N]: " HAS_CERT
 
 mkdir -p docker/main/nginxContainer/certs
@@ -63,6 +66,7 @@ if [[ "$HAS_CERT" =~ ^[Yy]$ ]]; then
     cp "$KEY_PATH" docker/main/nginxContainer/certs/privkey.key
 else
     echo "Warning: No SSL certificate provided. You must configure Let's Encrypt or another provider manually."
+fi
 
 mkdir -p docker/clients
 
@@ -89,7 +93,6 @@ services:
     networks:
       - main_intranet
       - client_intranet
-
   php_main:
     build: ./php-fpmConf/
     container_name: php_main
@@ -104,7 +107,6 @@ services:
     command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
     networks:
       - main_intranet
-
   mysql_main:
     image: mysql:latest
     container_name: mysql_main
@@ -116,7 +118,6 @@ services:
       - db:/var/lib/mysql
     networks:
       - main_intranet
-
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin_main
@@ -129,7 +130,6 @@ services:
       - PMA_HOST=mysql_main
     networks:
       - main_intranet
-
   filemanager:
     image: filebrowser/filebrowser
     restart: always
@@ -142,37 +142,12 @@ services:
       main_intranet:
         aliases:
           - files.${DOMAIN}
-
 volumes:
   db:
-
 networks:
   main_intranet:
     driver: bridge
-  client_intranet:mkdir -p docker/main/nginxContainer/certs
-
-if [[ "$HAS_CERT" =~ ^[Yy]$ ]]; then
-    read -rp "Enter the full path to your SSL certificate (e.g. /path/to/cert.pem): " CERT_PATH
-    read -rp "Enter the full path to your private key (e.g. /path/to/privkey.pem): " KEY_PATH
-
-    if [[ ! -f "$CERT_PATH" ]]; then
-        echo "Error: Certificate file not found at $CERT_PATH" >&2
-        exit 1
-    fi
-
-    if [[ ! -f "$KEY_PATH" ]]; then
-        echo "Error: Private key file not found at $KEY_PATH" >&2
-        exit 1
-    fi
-
-    echo "Certificate and private key files found. Proceeding..."
-    # Optionally copy to destination
-    mkdir -p docker/main/nginxContainer/certs
-    cp "$CERT_PATH" docker/main/nginxContainer/certs/fullchain.cer
-    cp "$KEY_PATH" docker/main/nginxContainer/certs/privkey.key
-else
-    echo "Warning: No SSL certificate provided. You must configure Let's Encrypt or another provider manually."
-    driver: bridge
+  client_intranet:
 EOF
 
 mkdir -p docker/main/fileBrowserContainer
@@ -195,8 +170,6 @@ cat > docker/main/fileBrowserContainer/.filebrowser.json <<EOF
 EOF
 
 echo "Created .filebrowser.json with bcrypt password hash."
-
-fi
 
 CONF_DIR="docker/main/nginxContainer/nginxConf"
 CONF_FILE="${CONF_DIR}/php.conf"

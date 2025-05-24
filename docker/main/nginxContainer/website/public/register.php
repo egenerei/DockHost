@@ -182,7 +182,7 @@ JSON;
                 <link rel="stylesheet" href="../css/style.css">
               </head>
             <body>
-              <a href="http://'.$safeUsername.'.$domain/admin/" class="button">Administration</a>
+              <a href="http://'.$safeUsername.'.'.$domain.'/admin/" class="button">Administration</a>
             </body>
           </html>';
     exit;

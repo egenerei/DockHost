@@ -78,24 +78,23 @@ touch docker/main/nginxContainer/website/logs/dockhost_register.log
 cat > ./docker/main/compose.yaml <<EOF
 services:
   nginx_main:
-    image: nginx:latest
+    image: nginx:stable-alpine
     container_name: nginx_main
     restart: always
     ports:
       - 80:80
       - 443:443
     volumes:
-      - ./nginxContainer/website:/usr/share/nginx/html
-      - ./nginxContainer/certs:/etc/nginx/ssl
-      - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf
+      - ./nginxContainer/website:/usr/share/nginx/html:ro
+      - ./nginxContainer/certs:/etc/nginx/ssl:ro
+      - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - php_main
     networks:
       - main_intranet
       - client_intranet
-  php_main:
+  php:
     build: ./php-fpmConf/
-    container_name: php_main
     restart: always
     environment:
       - DOMAIN=${DOMAIN}
@@ -107,9 +106,8 @@ services:
     command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
     networks:
       - main_intranet
-  mysql_main:
+  mysql:
     image: mysql:latest
-    container_name: mysql_main
     restart: always
     environment:
       - MYSQL_ROOT_DATABASE=${DB_NAME}
@@ -120,14 +118,13 @@ services:
       - main_intranet
   phpmyadmin:
     image: phpmyadmin
-    container_name: phpmyadmin_main
     restart: always
     ports:
       - 8080:80
     depends_on:
-      - mysql_main
+      - mysql
     environment:
-      - PMA_HOST=mysql_main
+      - PMA_HOST=mysql
     networks:
       - main_intranet
   filemanager:
@@ -136,8 +133,7 @@ services:
     volumes:
       - ./nginxContainer/website:/srv
       - ../clients:/srv/clients
-      - ./fileBrowserContainer/.filebrowser.json:/.filebrowser.json
-      - db:/db_files
+      - db:/srv/db_files:ro
     networks:
       main_intranet:
         aliases:

@@ -1,23 +1,9 @@
 FROM php:fpm-alpine
 
-RUN apk add --no-cache \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    tzdata \
-    icu-dev \
-    g++ \
-    make \
-    autoconf \
-    libzip-dev
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl
-
-RUN docker-php-ext-enable mysqli pdo_mysql mbstring xml zip bcmath exif intl
+RUN apk add --no-cache --virtual .build-deps \
+    g++ make autoconf libzip-dev libpng-dev libjpeg-turbo-dev freetype-dev oniguruma-dev libxml2-dev icu-dev \
+  && docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl \
+  && apk del .build-deps
 
 WORKDIR /usr/share/nginx/html

@@ -154,7 +154,7 @@
       systemd:
         daemon_reload: yes
 
-    - name: Enable and start compose-watcher
+    - name: Enable and start docker-compose-watch
       systemd:
         name: docker-compose-watch.service
         enabled: yes

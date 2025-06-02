@@ -79,7 +79,6 @@ cat > ./docker/main/compose.yaml <<EOF
 services:
   nginx_main:
     image: nginx:stable-alpine
-    container_name: nginx_main
     restart: always
     ports:
       - 80:80
@@ -89,7 +88,7 @@ services:
       - ./nginxContainer/certs:/etc/nginx/ssl:ro
       - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - php_main
+      - php
     networks:
       - main_intranet
       - client_intranet
@@ -125,6 +124,7 @@ services:
       - mysql
     environment:
       - PMA_HOST=mysql
+      - PMA_ABSOLUTE_URI=https://${DOMAIN}/phpmyadmin/
     networks:
       - main_intranet
   filemanager:
@@ -190,18 +190,24 @@ server {
     }
     location ~ \.php$ {
         include fastcgi_params;
-        fastcgi_pass php_main:9000;
+        fastcgi_pass php:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root/\$fastcgi_script_name;
     }
+    location ^~ /phpmyadmin/ {
+        proxy_pass http://phpmyadmin/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+    }
 }
-
 server {
     listen 80;
     server_name ${DOMAIN};
     return 301 https://\$host\$request_uri;
 }
-
 server {
     listen 443 ssl;
     server_name *.${DOMAIN};

@@ -12,3 +12,4 @@ docker/main/nginxContainer/website/logs
 docker/main/nginxContainer/nginxConf
 docker/main/fileBrowserContainer
 docker/clients
+certs

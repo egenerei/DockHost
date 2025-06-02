@@ -127,17 +127,16 @@ services:
       - PMA_ABSOLUTE_URI=https://${DOMAIN}/phpmyadmin/
     networks:
       - main_intranet
-  filemanager:
+  filebrowser:
     image: filebrowser/filebrowser
     restart: always
     volumes:
       - ./nginxContainer/website:/srv
       - ../clients:/srv/clients
+      - ./fileBrowserContainer/.filebrowser.json:/.filebrowser.json:ro
       - db:/srv/db_files:ro
     networks:
-      main_intranet:
-        aliases:
-          - files.${DOMAIN}
+      - main_intranet
 volumes:
   db:
 networks:
@@ -155,7 +154,7 @@ BCRYPT_HASH=$(htpasswd -nbB "$USERNAME" "$PASSWORD" | cut -d':' -f2)
 cat > docker/main/fileBrowserContainer/.filebrowser.json <<EOF
 {
   "port": 80,
-  "baseURL": "",
+  "baseURL": "/files",
   "address": "",
   "log": "stdout",
   "database": "/database.db",
@@ -196,11 +195,14 @@ server {
     }
     location ^~ /phpmyadmin/ {
         proxy_pass http://phpmyadmin/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_redirect off;
+    }
+    location ^~ /files/ {
+        proxy_pass http://filebrowser/;
     }
 }
 server {

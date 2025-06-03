@@ -14,21 +14,17 @@
           #!/bin/bash
 
           WATCH_DIR="/docker/clients"
-          LOG_FILE="/docker/inotify-docker.log"
+          LOG_FILE="/docker/main/nginxContainer/website/logs/dockhost_dockerinfo.log"
           MAX_RETRIES=6
           SLEEP_INTERVAL=10
-
           inotifywait -m -e create --format "%f" "$WATCH_DIR" | while read NEW_ENTRY; do
               NEW_PATH="$WATCH_DIR/$NEW_ENTRY"
-
               if [ -d "$NEW_PATH" ]; then
                   echo "$(date) - Detected new directory: $NEW_PATH" >> "$LOG_FILE"
-
                   ATTEMPT=1
                   while [ $ATTEMPT -le $MAX_RETRIES ]; do
                       if [ -f "$NEW_PATH/compose.yaml" ] || [ -f "$NEW_PATH/docker-compose.yml" ]; then
                           echo "$(date) - Found compose file in $NEW_PATH (attempt $ATTEMPT)" >> "$LOG_FILE"
-
                           (
                               cd "$NEW_PATH"
                               safeUsername=$(basename "$NEW_PATH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
@@ -49,13 +45,11 @@
                   --border-radius: 8px;
                   --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 }
-
                 * {
                   margin: 0;
                   padding: 0;
                   box-sizing: border-box;
                 }
-
                 body {
                   background-color: var(--bg-color);
                   color: var(--text-color);
@@ -64,7 +58,6 @@
                   flex-direction: column;
                   height: 100vh;
                 }
-
                 header {
                   text-align: center;
                   padding: 1rem;
@@ -72,7 +65,6 @@
                   color: var(--text-color);
                   font-size: 1.5rem;
                 }
-
                 .iframe-container {
                   flex: 1;
                   display: flex;
@@ -109,8 +101,8 @@
             </body>
             </html>
           EOF
-
                               docker compose up -d >> "$LOG_FILE" 2>&1
+                              echo "$(date) - Client $safeUsername READY" >> "$LOG_FILE"
                           )
                           break
                       else
@@ -119,7 +111,6 @@
                           ((ATTEMPT++))
                       fi
                   done
-
                   if [ $ATTEMPT -gt $MAX_RETRIES ]; then
                       echo "$(date) - Failed to find compose file in $NEW_PATH after $MAX_RETRIES attempts" >> "$LOG_FILE"
                   fi

@@ -97,32 +97,13 @@ services:
     restart: always
     environment:
       - DOMAIN=${DOMAIN}
-      - DATABASE_NAME=${DB_NAME}
-      - DATABASE_ROOT_PASSWORD=${DB_PASSWORD}
+      - SQLITE_DB_FILE=/db/clients.sqlite
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
       - ../clients:/clients
-    command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
-    networks:
-      intranet:
-  mariadb:
-    image: mariadb:11.8.1-ubi9-rc
-    restart: always
-    environment:
-      - MARIADB_DATABASE=${DB_NAME}
-      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - db:/var/lib/mysql
-    networks:
-      intranet:
-  phpmyadmin:
-    image: phpmyadmin
-    restart: always
-    depends_on:
-      - mariadb
-    environment:
-      - PMA_HOST=mariadb
-      - PMA_ABSOLUTE_URI=https://${DOMAIN}/phpmyadmin/
+      - db:/db
+    command: >
+      sh -c "touch /db/clients.sqlite && chown -R www-data:www-data /usr/share/nginx/html /clients /db && chmod -R 755 /usr/share/nginx/html /clients /db && php-fpm"
     networks:
       intranet:
   filebrowser:
@@ -188,14 +169,6 @@ server {
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root/\$fastcgi_script_name;
     }
-    location ^~ /phpmyadmin/ {
-        proxy_pass http://phpmyadmin/;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_redirect off;
-    }
     location ^~ /files/ {
         proxy_pass http://filebrowser/;
     }
@@ -222,8 +195,19 @@ cat > hosts <<EOF
 [webserver]
 web1 ansible_ssh_host=${SERVER_IP} ansible_ssh_port=${SSH_PORT}
 EOF
-
 echo "Ansible inventory written to hosts"
+
+cat > ansible.cfg <<EOF
+[defaults]
+# Archivo de VMs
+inventory = hosts
+# Usuario por defecto
+remote_user = ${REMOTE_USER}
+# Ruta del archivo de claves ssh
+private_key_file = ${PRIVATE_KEY}
+EOF
+
+echo "Ansible configuration written to ansible.cfg"
 
 # Write the Ansible config
 cat > autoDockerUp/docker-compose-watch.sh <<EOF

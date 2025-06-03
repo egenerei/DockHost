@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 # --- Logging setup ---
-$logFile = '../logs/dockhost_register.log'; # Ensure writable
+$logFile = '../logs/dockhost_register.log';
 function log_info($msg) {
     global $logFile;
     $timestamp = date("Y-m-d H:i:s");
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_writable($userDir)) {
         log_info("Directory not writable: " . htmlspecialchars($userDir, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
         die("Directory exists but is not writable: $userDir");
-    }
+    }# Ensure writable
     $composeYamlContent = <<<YAML
 services:
   apache:
@@ -112,7 +112,6 @@ networks:
 volumes:
   website:
   db:
-
 YAML;
     $httpdConfContent = <<<HTTPD
 <VirtualHost *:80>
@@ -157,7 +156,6 @@ YAML;
     CustomLog /proc/self/fd/1 combined
 </VirtualHost>
 HTTPD;
-
     $fileBrowserContent = <<<JSON
 {
   "port": 80,

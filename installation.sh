@@ -90,8 +90,8 @@ services:
     depends_on:
       - php
     networks:
-      - main_intranet
-      - client_intranet
+      intranet:
+      client_intranet:
   php:
     build: ./php-fpmConf/
     restart: always
@@ -104,7 +104,7 @@ services:
       - ../clients:/clients
     command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
     networks:
-      - main_intranet
+      intranet:
   mariadb:
     image: mariadb:11.8.1-ubi9-rc
     restart: always
@@ -114,7 +114,7 @@ services:
     volumes:
       - db:/var/lib/mysql
     networks:
-      - main_intranet
+      intranet:
   phpmyadmin:
     image: phpmyadmin
     restart: always
@@ -124,7 +124,7 @@ services:
       - PMA_HOST=mariadb
       - PMA_ABSOLUTE_URI=https://${DOMAIN}/phpmyadmin/
     networks:
-      - main_intranet
+      intranet:
   filebrowser:
     image: filebrowser/filebrowser
     restart: always
@@ -134,11 +134,11 @@ services:
       - ./fileBrowserContainer/.filebrowser.json:/.filebrowser.json:ro
       - db:/srv/db_files:ro
     networks:
-      - main_intranet
+      intranet:
 volumes:
   db:
 networks:
-  main_intranet:
+  intranet:
     driver: bridge
   client_intranet:
 EOF

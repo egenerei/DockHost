@@ -68,11 +68,11 @@ services:
     command: >
       sh -c "a2enmod proxy proxy_http rewrite headers && htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']} && apache2-foreground"
     networks:
-      {$safeUsername}_intranet:
+      intranet:
       main_client_intranet:
         aliases:
           - {$safeUsername}.{$domain}
-  filemanager:
+  filebrowser:
     image: filebrowser/filebrowser
     container_name: files{$safeUsername}
     restart: always
@@ -81,7 +81,7 @@ services:
       - ./.filebrowser.json:/.filebrowser.json:ro
       - db:/srv/database:ro
     networks:
-      {$safeUsername}_intranet:
+      intranet:
     entrypoint: ["./filebrowser", "--noauth"]
   mariadb:
     image: mariadb:11.8.1-ubi9-rc
@@ -92,7 +92,7 @@ services:
     volumes:
       - db:/var/lib/mysql
     networks:
-      {$safeUsername}_intranet:
+      intranet:
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin{$safeUsername}
@@ -103,11 +103,11 @@ services:
       - PMA_HOST=mariadb{$safeUsername}
       - PMA_ABSOLUTE_URI=https://{$safeUsername}.{$domain}/admin/phpmyadmin/
     networks:
-      {$safeUsername}_intranet:
+      intranet:
 networks:
   main_client_intranet:
     external: true
-  {$safeUsername}_intranet:
+  intranet:
     driver: bridge
 volumes:
   website:
@@ -156,7 +156,6 @@ YAML;
     ErrorLog /proc/self/fd/2
     CustomLog /proc/self/fd/1 combined
 </VirtualHost>
-
 HTTPD;
 
     $fileBrowserContent = <<<JSON

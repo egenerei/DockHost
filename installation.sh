@@ -226,25 +226,13 @@ EOF
 echo "Ansible inventory written to hosts"
 
 # Write the Ansible config
-cat > ansible.cfg <<EOF
-[defaults]
-# Archivo de VMs
-inventory = hosts
-# Usuario por defecto
-remote_user = ${REMOTE_USER}
-# Ruta del archivo de claves ssh
-private_key_file = ${PRIVATE_KEY}
-EOF
-echo "Ansible configuration written to ansible.cfg"
-
 cat > autoDockerUp/docker-compose-watch.sh <<EOF
 #!/bin/bash
-
 WATCH_DIR="/docker/clients"
 LOG_FILE="/docker/main/nginxContainer/website/logs/dockhost_dockerinfo.log"
 MAX_RETRIES=6
 SLEEP_INTERVAL=10
-inotifywait -m -e create --format "%f"Let me know if you want to define static IPs or isolate containers further (e.g., VLAN-style segmentation or proxy-only access). "\$WATCH_DIR" | while read NEW_ENTRY; do
+inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
     NEW_PATH="\$WATCH_DIR/\$NEW_ENTRY"
     if [ -d "\$NEW_PATH" ]; then
         echo "\$(date) - Detected new directory: \$NEW_PATH" >> "\$LOG_FILE"
@@ -298,7 +286,6 @@ inotifywait -m -e create --format "%f"Let me know if you want to define static I
         gap: 1rem;
         padding: 1rem;
       }
-
       iframe {
         flex: 1;
         height: 100%;
@@ -323,7 +310,6 @@ inotifywait -m -e create --format "%f"Let me know if you want to define static I
         <p>Use the credentials for the database</p>
         <a href="https://\$safeUsername.${DOMAIN}/admin/phpmyadmin/">PHPMyAdmin panel</a>
       </div>
-      
     </div>
   </body>
   </html>

@@ -77,7 +77,7 @@ touch docker/main/nginxContainer/website/logs/dockhost_register.log
 # Generate docker-compose.yaml
 cat > docker/main/compose.yaml <<EOF
 services:
-  nginx_main:
+  nginx:
     image: nginx:stable-alpine
     restart: always
     ports:
@@ -244,7 +244,7 @@ WATCH_DIR="/docker/clients"
 LOG_FILE="/docker/main/nginxContainer/website/logs/dockhost_dockerinfo.log"
 MAX_RETRIES=6
 SLEEP_INTERVAL=10
-inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
+inotifywait -m -e create --format "%f"Let me know if you want to define static IPs or isolate containers further (e.g., VLAN-style segmentation or proxy-only access). "\$WATCH_DIR" | while read NEW_ENTRY; do
     NEW_PATH="\$WATCH_DIR/\$NEW_ENTRY"
     if [ -d "\$NEW_PATH" ]; then
         echo "\$(date) - Detected new directory: \$NEW_PATH" >> "\$LOG_FILE"

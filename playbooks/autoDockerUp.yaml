@@ -31,12 +31,10 @@
 
                           (
                               cd "$NEW_PATH"
-
                               safeUsername=$(basename "$NEW_PATH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
-
-                              mkdir -p ./website/admin
-
-                              cat > ./website/admin/index.html <<EOF
+                              mkdir -p ./website
+                              mkdir -p ./admin
+                              cat > ./admin/index.html <<EOF
           <!DOCTYPE html>
             <html lang="en">
             <head>

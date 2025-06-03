@@ -62,9 +62,9 @@ services:
     image: php:8.2-apache
     restart: always
     volumes:
-      - ./website:/var/www/html
-      - ./website/admin:/var/www/html/admin:ro
-      - ./httpd.conf:/etc/apache2/sites-available/000-default.conf
+      - website:/var/www/html
+      - ./admin:/var/www/admin:ro
+      - ./httpd.conf:/etc/apache2/sites-available/000-default.conf:ro
     command: >
       sh -c "a2enmod proxy proxy_http rewrite headers && htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']} && apache2-foreground"
     networks:
@@ -77,9 +77,8 @@ services:
     container_name: files{$safeUsername}
     restart: always
     volumes:
-      - ./website:/srv
-      - ./website/admin:/srv/website/admin:ro
-      - ./.filebrowser.json:/.filebrowser.json
+      - website:/srv/website
+      - ./.filebrowser.json:/.filebrowser.json:ro
       - db:/srv/database:ro
     networks:
       {$safeUsername}_intranet:
@@ -111,28 +110,40 @@ networks:
   {$safeUsername}_intranet:
     driver: bridge
 volumes:
+  website:
   db:
-    labels:
-      - tenant={$safeUsername}
+
 YAML;
     $httpdConfContent = <<<HTTPD
 <VirtualHost *:80>
     ServerName {$safeUsername}.{$domain}
+    # Main root
     DocumentRoot /var/www/html
     <Directory /var/www/html>
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
-    <Files ".ht*">
-        Require all denied
-    </Files>
+    # Admin root served from different path
+    Alias /admin/ /var/www/admin/
+    <Directory /var/www/admin>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    # Access control for /admin (filesystem path: /var/www/admin)
     <Location "/admin/">
         AuthType Basic
         AuthName "Restricted Admin Area"
         AuthUserFile "/etc/apache2/.htpasswd"
         Require valid-user
     </Location>
+    # Ensure dotfiles in admin area are protected too
+    <Directory "/var/www/admin">
+        <Files ".ht*">
+            Require all denied
+        </Files>
+    </Directory>
     RedirectMatch 301 ^/admin/phpmyadmin$ /admin/phpmyadmin/
     RedirectMatch 301 ^/admin/files$ /admin/files/
     ProxyPreserveHost On

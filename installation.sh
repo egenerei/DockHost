@@ -236,3 +236,111 @@ remote_user = ${REMOTE_USER}
 private_key_file = ${PRIVATE_KEY}
 EOF
 echo "Ansible configuration written to ansible.cfg"
+
+cat > autoDockerUp/docker-compose-watch.sh <<EOF
+#!/bin/bash
+
+WATCH_DIR="/docker/clients"
+LOG_FILE="/docker/main/nginxContainer/website/logs/dockhost_dockerinfo.log"
+MAX_RETRIES=6
+SLEEP_INTERVAL=10
+inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
+    NEW_PATH="\$WATCH_DIR/\$NEW_ENTRY"
+    if [ -d "\$NEW_PATH" ]; then
+        echo "\$(date) - Detected new directory: \$NEW_PATH" >> "\$LOG_FILE"
+        ATTEMPT=1
+        while [ \$ATTEMPT -le \$MAX_RETRIES ]; do
+            if [ -f "\$NEW_PATH/compose.yaml" ] || [ -f "\$NEW_PATH/docker-compose.yml" ]; then
+                echo "\$(date) - Found compose file in \$NEW_PATH (attempt \$ATTEMPT)" >> "\$LOG_FILE"
+                (
+                    cd "\$NEW_PATH"
+                    safeUsername=\$(basename "\$NEW_PATH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+                    mkdir -p ./website
+                    mkdir -p ./admin
+                    cat > ./admin/index.html <<HTML
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard</title>
+    <style>
+      :root {
+        --bg-color: #121212;
+        --text-color: #f1f1f1;
+        --card-bg: #1e1e1e;
+        --border-radius: 8px;
+        --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: var(--font);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      header {
+        text-align: center;
+        padding: 1rem;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        font-size: 1.5rem;
+      }
+      .iframe-container {
+        flex: 1;
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      iframe {
+        flex: 1;
+        height: 100%;
+        border: none;
+        border-radius: var(--border-radius);
+        background-color: var(--card-bg);
+      }
+    </style>
+  </head>
+  <body>
+    <header>Dashboard - \$safeUsername</header>
+    <div class="iframe-container">
+      <iframe src="https://\$safeUsername.${DOMAIN}/admin/files/" title="FILES"></iframe>
+      <div>
+        <h3>MariaDB Database connection parameters for PHP</h3>
+        <p>User: root</p>
+        <p>Password: the password set when registering</p>
+        <p>Server: mariadb\$safeUsername</p>
+        <p>Port: 3306</p>
+        <p>Keep in mind that you cannot connect to the database ouside the website hosted in DockHost</p>
+        <h4>PHPMyAdmin</h4>
+        <p>Use the credentials for the database</p>
+        <a href="https://\$safeUsername.${DOMAIN}/admin/phpmyadmin/">PHPMyAdmin panel</a>
+      </div>
+      
+    </div>
+  </body>
+  </html>
+HTML
+                    docker compose up -d >> "\$LOG_FILE" 2>&1
+                    echo "\$(date) - Client \$safeUsername READY" >> "\$LOG_FILE"
+                )
+                break
+            else
+                echo "\$(date) - Compose file not found in \$NEW_PATH (attempt \$ATTEMPT)" >> "\$LOG_FILE"
+                sleep "\$SLEEP_INTERVAL"
+                ((ATTEMPT++))
+            fi
+        done
+        if [ \$ATTEMPT -gt \$MAX_RETRIES ]; then
+            echo "\$(date) - Failed to find compose file in \$NEW_PATH after \$MAX_RETRIES attempts" >> "\$LOG_FILE"
+        fi
+    fi
+done
+EOF

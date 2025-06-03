@@ -13,3 +13,4 @@ docker/main/nginxContainer/nginxConf
 docker/main/fileBrowserContainer
 docker/clients
 certs
+autoDockerUp/docker-compose-watch.sh

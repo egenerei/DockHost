@@ -1,0 +1,13 @@
+[Unit]
+Description=Inotify Docker Compose Watcher
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/docker-compose-watch.sh
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -75,7 +75,7 @@ mkdir -p docker/main/nginxContainer/website/logs
 touch docker/main/nginxContainer/website/logs/dockhost_register.log
 
 # Generate docker-compose.yaml
-cat > ./docker/main/compose.yaml <<EOF
+cat > docker/main/compose.yaml <<EOF
 services:
   nginx_main:
     image: nginx:stable-alpine
@@ -97,20 +97,20 @@ services:
     restart: always
     environment:
       - DOMAIN=${DOMAIN}
-      - MYSQL_ROOT_DATABASE=${DB_NAME}
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - DATABASE_NAME=${DB_NAME}
+      - DATABASE_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html
       - ../clients:/clients
     command: sh -c "chown -R www-data:www-data /usr/share/nginx/html /clients && chmod -R 755 /usr/share/nginx/html /clients && php-fpm"
     networks:
       - main_intranet
-  mysql:
-    image: mysql:latest
+  mariadb:
+    image: mariadb:11.8.1-ubi9-rc
     restart: always
     environment:
-      - MYSQL_ROOT_DATABASE=${DB_NAME}
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - db:/var/lib/mysql
     networks:
@@ -119,9 +119,9 @@ services:
     image: phpmyadmin
     restart: always
     depends_on:
-      - mysql
+      - mariadb
     environment:
-      - PMA_HOST=mysql
+      - PMA_HOST=mariadb
       - PMA_ABSOLUTE_URI=https://${DOMAIN}/phpmyadmin/
     networks:
       - main_intranet
@@ -164,14 +164,11 @@ EOF
 
 echo "Created .filebrowser.json with bcrypt password hash."
 
-CONF_DIR="docker/main/nginxContainer/nginxConf"
-CONF_FILE="${CONF_DIR}/php.conf"
-
-# Create necessary directory if it doesn't exist
-mkdir -p "$CONF_DIR"
+# Create necessary directory if it mysqldoesn't exist
+mkdir -p docker/main/nginxContainer/nginxConf
 
 # Write the nginx config with the user-provided domain
-cat > "$CONF_FILE" <<EOF
+cat > docker/main/nginxContainer/nginxConf/php.conf <<EOF
 server {
     listen 443 ssl;
     server_name ${DOMAIN};
@@ -218,24 +215,18 @@ server {
 }
 EOF
 
-echo "Nginx config written to $CONF_FILE"
-
-# Define inventory file path
-INVENTORY_FILE="hosts"
+echo "Nginx config written to docker/main/nginxContainer/nginxConf/php.conf"
 
 # Write to the inventory file
-cat > "$INVENTORY_FILE" <<EOF
+cat > hosts <<EOF
 [webserver]
 web1 ansible_ssh_host=${SERVER_IP} ansible_ssh_port=${SSH_PORT}
 EOF
 
-echo "Ansible inventory written to $INVENTORY_FILE"
-
-# Define ansible.cfg path
-ANSIBLE_CFG_FILE="ansible.cfg"
+echo "Ansible inventory written to hosts"
 
 # Write the Ansible config
-cat > "$ANSIBLE_CFG_FILE" <<EOF
+cat > ansible.cfg <<EOF
 [defaults]
 # Archivo de VMs
 inventory = hosts
@@ -244,5 +235,4 @@ remote_user = ${REMOTE_USER}
 # Ruta del archivo de claves ssh
 private_key_file = ${PRIVATE_KEY}
 EOF
-
-echo "Ansible configuration written to $ANSIBLE_CFG_FILE"
+echo "Ansible configuration written to ansible.cfg"

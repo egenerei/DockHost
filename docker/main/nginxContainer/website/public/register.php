@@ -78,17 +78,18 @@ services:
     restart: always
     volumes:
       - ./website:/srv
-      - ./website/admin:/var/www/html/admin:ro
+      - ./website/admin:/srv/website/admin:ro
       - ./.filebrowser.json:/.filebrowser.json
+      - db:/srv/database:ro
     networks:
       {$safeUsername}_intranet:
     entrypoint: ["./filebrowser", "--noauth"]
-  mysql:
-    image: mysql:latest
-    container_name: mysql{$safeUsername}
+  mariadb:
+    image: mariadb:11.8.1-ubi9-rc
+    container_name: mariadb{$safeUsername}
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD={$_POST['password']}
+      - MARIADB_ROOT_PASSWORD={$_POST['password']}
     volumes:
       - db:/var/lib/mysql
     networks:
@@ -98,9 +99,9 @@ services:
     container_name: phpmyadmin{$safeUsername}
     restart: always
     depends_on:
-      - mysql
+      - mariadb
     environment:
-      - PMA_HOST=mysql{$safeUsername}
+      - PMA_HOST=mariadb{$safeUsername}
       - PMA_ABSOLUTE_URI=https://{$safeUsername}.{$domain}/admin/phpmyadmin/
     networks:
       {$safeUsername}_intranet:

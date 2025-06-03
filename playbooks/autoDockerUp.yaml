@@ -96,10 +96,10 @@
               <div class="iframe-container">
                 <iframe src="https://$safeUsername.egenerei.es/admin/files/" title="FILES"></iframe>
                 <div>
-                  <h3>MySQL Database connection parameters for PHP</h3>
+                  <h3>MariaDB Database connection parameters for PHP</h3>
                   <p>User: root</p>
                   <p>Password: the password set when registering</p>
-                  <p>Server: mysql$safeUsername</p>
+                  <p>Server: mariadb$safeUsername</p>
                   <p>Port: 3306</p>
                   <p>Keep in mind that you cannot connect to the database ouside the website hosted in DockHost</p>
                   <h4>PHPMyAdmin</h4>

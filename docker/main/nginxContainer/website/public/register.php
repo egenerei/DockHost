@@ -62,7 +62,7 @@ services:
     image: php:8.2-apache
     restart: always
     volumes:
-      - website:/var/www/html
+      - ./website:/var/www/html
       - ./admin:/var/www/admin:ro
       - ./httpd.conf:/etc/apache2/sites-available/000-default.conf:ro
     command: >
@@ -77,7 +77,7 @@ services:
     container_name: files{$safeUsername}
     restart: always
     volumes:
-      - website:/srv/website
+      - ./website:/srv/website
       - ./.filebrowser.json:/.filebrowser.json:ro
       - db:/srv/database:ro
     networks:
@@ -110,7 +110,6 @@ networks:
   intranet:
     driver: bridge
 volumes:
-  website:
   db:
 YAML;
     $httpdConfContent = <<<HTTPD

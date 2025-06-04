@@ -66,7 +66,7 @@ services:
       - ./admin:/var/www/admin:ro
       - ./httpd.conf:/etc/apache2/sites-available/000-default.conf:ro
     command: >
-      sh -c "a2enmod proxy proxy_http rewrite headers && htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']} && apache2-foreground"
+      sh -c "a2enmod proxy proxy_http rewrite headers && htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']} && docker-php-ext-install mysqli && apache2-foreground"
     networks:
       intranet:
       main_client_intranet:

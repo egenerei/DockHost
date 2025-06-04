@@ -236,47 +236,74 @@ inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Dashboard</title>
-    <style>
-      :root {
-        --bg-color: #121212;
-        --text-color: #f1f1f1;
-        --card-bg: #1e1e1e;
-        --border-radius: 8px;
-        --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        font-family: var(--font);
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-      header {
-        text-align: center;
-        padding: 1rem;
-        background-color: var(--card-bg);
-        color: var(--text-color);
-        font-size: 1.5rem;
-      }
-      .iframe-container {
-        flex: 1;
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-      }
-      iframe {
-        flex: 1;
-        height: 100%;
-        border: none;
-        border-radius: var(--border-radius);
-        background-color: var(--card-bg);
-      }
+      <style>
+        :root {
+          --bg-color: #121212;
+          --text-color: #f1f1f1;
+          --card-bg: #1e1e1e;
+          --accent-color: #3f51b5;
+          --accent-hover: #5c6bc0;
+          --border-radius: 8px;
+          --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          font-family: var(--font);
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+        }
+        header {
+          text-align: center;
+          padding: 1rem;
+          background-color: var(--card-bg);
+          color: var(--text-color);
+          font-size: 1.5rem;
+        }
+        .iframe-container {
+          flex: 1;
+          display: flex;
+          gap: 1rem;
+          padding: 1rem;
+        }
+        iframe {
+          flex: 1;
+          height: 100%;
+          border: none;
+          border-radius: var(--border-radius);
+          background-color: var(--card-bg);
+        }
+        .iframe-container > div {
+          flex: 1;
+          background-color: var(--card-bg);
+          padding: 1rem;
+          border-radius: var(--border-radius);
+        }
+        h3, h4 {
+          margin-bottom: 0.5rem;
+        }
+        p {
+          margin-bottom: 0.5rem;
+        }
+        a {
+          display: inline-block;
+          margin-top: 1rem;
+          padding: 0.5rem 1rem;
+          color: #fff;
+          background-color: var(--accent-color);
+          border-radius: var(--border-radius);
+          text-decoration: none;
+          transition: background-color 0.3s ease;
+        }
+        a:hover {
+          background-color: var(--accent-hover);
+        }
     </style>
   </head>
   <body>

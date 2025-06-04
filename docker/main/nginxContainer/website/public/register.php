@@ -168,8 +168,8 @@ JSON;
     $apacheDockerfileContent = <<<dockerfile
 FROM php:8.2-apache
 RUN a2enmod proxy proxy_http rewrite headers && \
-    docker-php-ext-install mysqli && \
-    docker-php-ext-install mysqli
+    docker-php-ext-install mysqli pdo pdo_mysql && \
+    cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 RUN htpasswd -cbB /etc/apache2/.htpasswd {$safeUsername} {$_POST['password']}
 CMD ["apache2-foreground"]
 dockerfile;

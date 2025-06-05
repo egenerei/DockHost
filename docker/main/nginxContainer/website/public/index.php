@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>DockHost</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
+  <?php include("../includes/navbar.php"); ?>
+  <div class="fullscreen-center">
     <h1>Welcome to DockHost</h1>
-    <p>Manage your isolated Docker environments easily.</p>
+    <p> Create and deploy your website in a second</p>
     <a href="register.php" class="button">Register</a>
   </div>
 </body>

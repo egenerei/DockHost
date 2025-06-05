@@ -6,12 +6,13 @@ class UserRegistration {
     private string $rawUsername;
     private string $safeUsername;
     private string $password;
+    private string $confirm_password;
     private string $hash;
     private string $userDir;
     private string $domain;
     private string $logFile = '../logs/dockhost_register.log';
 
-    public function __construct(string $username, string $password, string $domain) {
+    public function __construct(string $username, string $password, string $confirm_password, string $domain) {
         $this->rawUsername = strtolower(trim($username));
         $this->safeUsername = preg_replace('/[^a-z0-9_-]/', '', $this->rawUsername);
 
@@ -27,8 +28,13 @@ class UserRegistration {
         }
 
         $this->password = $password;
+        $this->confirm_password = $confirm_password;
         $minLength = 12;
         $maxLength = 128;
+
+        if ($this->password != $this->confirm_password) {
+           throw new Exception("Passwords don't coincide");
+        }
 
         if (strlen($password) < $minLength || strlen($password) > $maxLength) {
             throw new Exception("Password must be between $minLength and $maxLength characters.");

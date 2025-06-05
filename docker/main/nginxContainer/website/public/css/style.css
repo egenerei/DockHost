@@ -18,16 +18,15 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
   padding: 20px;
+  padding-top: 80px; /* offset for fixed navbar */
 }
 
 .container {
   text-align: center;
   max-width: 600px;
+  margin: 0 auto; /* center horizontally */
 }
 
 h1 {
@@ -63,6 +62,7 @@ form {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   width: 100%;
   max-width: 400px;
+  margin: 0 auto; /* center horizontally */
 }
 
 form h2 {
@@ -102,4 +102,97 @@ button[type="submit"] {
 
 button[type="submit"]:hover {
   background-color: #0b5ed7;
+}
+
+/* ===== Navbar Styles ===== */
+
+.navbar {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--card-bg);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navbar-links li a {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar-links li a:hover {
+  color: var(--accent-color);
+}
+
+.fullscreen-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px); /* full height minus navbar */
+  text-align: center;
+}
+
+.error-message {
+  background-color: #ffe5e5;
+  color: #b30000;
+  border: 1px solid #ff4d4d;
+  padding: 15px;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  border-radius: 8px;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.input-with-button {
+  display: flex;
+  align-items: center;  /* vertically center children */
+  width: 100%;
+  position: relative;   /* keep relative for absolute positioning fallback if needed */
+}
+
+.input-with-button input {
+  width: 100%;
+  padding-right: 40px;
+  box-sizing: border-box;
+  height: 40px; /* explicitly define height if necessary */
+}
+
+.toggle-password {
+  position: absolute;
+  top: 38%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  height: 40px;       /* Match the input height */
+  width: 40px;        /* Give enough width for the emoji */
+  padding: 0;
+  display: flex;
+  align-items: center;      /* Vertically center emoji */
+  justify-content: center;  /* Horizontally center emoji */
+  line-height: 1;           /* Remove extra line height */
 }

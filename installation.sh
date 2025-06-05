@@ -161,7 +161,7 @@ server {
     ssl_session_cache shared:SSL:10m;
     root /usr/share/nginx/html/public;
     location / {
-        index index.html;
+        index index.php;
     }
     location ~ \.php$ {
         include fastcgi_params;

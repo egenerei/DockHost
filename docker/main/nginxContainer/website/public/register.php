@@ -46,15 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="text" name="username" placeholder="Username" required>
     
       <div class="input-with-button">
-      <input type="password" id="password" name="password" placeholder="Password" required>
-      <button type="button" class="toggle-password" onclick="togglePassword('password', this)">👁️</button>
-    </div>
-    
-    <div class="input-with-button">
-      <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
-      <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">👁️</button>
-    </div>
-    
+        <input type="password" id="password" name="password" placeholder="Password" required>
+        <button type="button" class="toggle-password" onclick="togglePassword('password', this)"></button>
+      </div>
+
+      <div class="input-with-button">
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+        <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)"></button>
+      </div>
+
       <button type="submit">Register</button>
     </form>
 

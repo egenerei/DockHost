@@ -187,12 +187,19 @@ button[type="submit"]:hover {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 18px;
-  height: 40px;       /* Match the input height */
-  width: 40px;        /* Give enough width for the emoji */
+  width: 40px;
+  height: 40px;
   padding: 0;
   display: flex;
-  align-items: center;      /* Vertically center emoji */
-  justify-content: center;  /* Horizontally center emoji */
-  line-height: 1;           /* Remove extra line height */
+  align-items: center;
+  justify-content: center;
+  line-height: 0; /* remove extra line height */
+  color: #555; /* icon stroke inherits currentColor */
+}
+
+.toggle-password svg {
+  stroke: currentColor;
+  width: 20px;
+  height: 20px;
+  pointer-events: none; /* so clicks go to button */
 }

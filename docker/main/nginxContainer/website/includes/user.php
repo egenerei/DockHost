@@ -3,37 +3,51 @@
 require_once '../includes/db.php';
 
 class UserRegistration {
-    private string $rawUsername;
-    private string $safeUsername;
+    private string $raw_username;
+    private string $safe_username;
     private string $password;
     private string $confirm_password;
     private string $hash;
-    private string $userDir;
+    private string $email;
+    private string $raw_subdomain;
+    private string $safe_subdomain;
+    private string $user_dir;
     private string $domain;
-    private string $logFile = '../logs/dockhost_register.log';
+    private string $log_file = '../logs/dockhost_register.log';
+    private string $db_password;
+    private string $confirm_db_password;
 
-    public function __construct(string $username, string $password, string $confirm_password, string $domain) {
-        $this->rawUsername = strtolower(trim($username));
-        $this->safeUsername = preg_replace('/[^a-z0-9_-]/', '', $this->rawUsername);
+    public function __construct(string $username, string $email, string $subdomain, string $password, string $confirm_password, string $db_password,string $confirm_db_password, string $domain) {
+        # Username checks
+        $this->raw_username = trim($username);
 
-        // Reject if sanitization changes the original username
-        if ($this->rawUsername !== $this->safeUsername) {
-            $this->log("Sanitized username mismatch: raw='{$this->rawUsername}', safe='{$this->safeUsername}'");
-            throw new Exception("Username contains invalid characters. Only lowercase letters, digits, hyphens, and underscores are allowed.");
+        # Validate: only letters (A–Z, a–z), digits, hyphens, and underscores
+        if (!preg_match('/^[a-zA-Z0-9_-]{4,32}$/', $this->raw_username)) {
+            $this->log("Invalid username: '{$this->raw_username}'");
+            throw new Exception("Username must contain only letters (A–Z, a–z), digits, hyphens, and underscores, and be 1–32 characters long.");
         }
 
-        if (empty($this->safeUsername)) {
-            $this->log("Invalid sanitized username: '{$this->rawUsername}'");
-            throw new Exception("Sanitized username is empty or invalid.");
+        $this->safe_username = strtolower($this->raw_username);
+
+        #Subdomain checks
+        $this->raw_subdomain = strtolower(trim($subdomain));
+
+        if (!preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/', $this->raw_subdomain)) {
+            $this->log("Invalid subdomain format: '{$this->raw_subdomain}'");
+            throw new Exception("Subdomain contains invalid characters. Only lowercase letters, digits, and hyphens are allowed. It must not start or end with a hyphen.");
         }
 
+        $this->safe_subdomain = $this->raw_subdomain;
+
+        #Password checks
+        #Access password
         $this->password = $password;
         $this->confirm_password = $confirm_password;
         $minLength = 12;
         $maxLength = 128;
 
         if ($this->password != $this->confirm_password) {
-           throw new Exception("Passwords don't coincide");
+           throw new Exception("Passwords are not the same");
         }
 
         if (strlen($password) < $minLength || strlen($password) > $maxLength) {
@@ -44,58 +58,79 @@ class UserRegistration {
             throw new Exception("Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.");
         }
         $this->hash = password_hash($password, PASSWORD_BCRYPT);
+
+        #Database Password
+        $this->db_password = $db_password;
+        $this->confirm_db_password = $confirm_db_password;
+        $minLength = 12;
+        $maxLength = 128;
+
+        if ($this->db_password != $this->confirm_db_password) {
+           throw new Exception("Database passwords are not the same");
+        }
+
+        if (strlen($this->db_password) < $minLength || strlen($this->db_password) > $maxLength) {
+            throw new Exception("Database password must be between $minLength and $maxLength characters.");
+        }
+
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])/', $this->db_password)) {
+            throw new Exception("Database password must include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+        }
+
+        #Setting other properties
         $this->domain = $domain;
-        $this->userDir = '/clients/' . $this->safeUsername;
+        $this->user_dir = '/clients/' . $this->safe_subdomain;
+        $this->email = $email;
     }
 
 
     public function register(PDO $pdo): void {
-        $this->storeInDatabase($pdo);
-        $this->createUserDirectory();
-        $this->generateUserFiles();
+        $this->store_in_database($pdo);
+        $this->create_user_directory();
+        $this->generate_user_files();
     }
 
-    private function storeInDatabase(PDO $pdo): void {
+    private function store_in_database(PDO $pdo): void {
         try {
-            $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-            $stmt->execute([$this->rawUsername, $this->hash]);
-            $this->log("User registered: {$this->rawUsername}");
+            $stmt = $pdo->prepare("INSERT INTO users (username,email,subdomain, password) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$this->raw_username,$this->email, $this->safe_subdomain, $this->hash]);
+            $this->log("User registered: {$this->raw_username}");
         } catch (PDOException $e) {
-            $this->log("DB Error for {$this->rawUsername}: {$e->getMessage()}");
+            $this->log("DB Error for {$this->raw_username}: {$e->getMessage()}");
             throw new Exception("Database error: {$e->getMessage()}");
         }
     }
 
-    private function createUserDirectory(): void {
-        if (!is_dir($this->userDir) && !mkdir($this->userDir, 0755, true)) {
-            $this->log("Failed to create directory: {$this->userDir}");
+    private function create_user_directory(): void {
+        if (!is_dir($this->user_dir) && !mkdir($this->user_dir, 0755, true)) {
+            $this->log("Failed to create directory: {$this->user_dir}");
             throw new Exception("Failed to create directory. Check permissions.");
         }
 
-        if (!is_writable($this->userDir)) {
-            $this->log("Directory not writable: {$this->userDir}");
+        if (!is_writable($this->user_dir)) {
+            $this->log("Directory not writable: {$this->user_dir}");
             throw new Exception("Directory exists but is not writable.");
         }
 
-        $this->log("User directory ready: {$this->userDir}");
+        $this->log("User directory ready: {$this->user_dir}");
     }
 
-    private function generateUserFiles(): void {
-        $this->writeFile("dockerfile", $this->generateDockerfile());
-        $this->writeFile("compose.yaml", $this->generateComposeYaml());
-        $this->writeFile("httpd.conf", $this->generateHttpdConf());
-        $this->writeFile(".filebrowser.json", $this->generateFileBrowserConfig());
+    private function generate_user_files(): void {
+        $this->write_file("dockerfile", $this->generate_dockerfile());
+        $this->write_file("compose.yaml", $this->generate_compose());
+        $this->write_file("httpd.conf", $this->generate_httpdconf());
+        $this->write_file(".filebrowser.json", $this->generate_filebrowser_config());
     }
 
-    private function writeFile(string $filename, string $content): void {
-        $path = "{$this->userDir}/{$filename}";
+    private function write_file(string $filename, string $content): void {
+        $path = "{$this->user_dir}/{$filename}";
         if (file_put_contents($path, $content) === false) {
-            $this->log("Failed to write $filename for {$this->safeUsername}");
+            $this->log("Failed to write $filename for {$this->safe_username}");
             throw new Exception("Failed to write file: $filename");
         }
     }
 
-    private function generateComposeYaml(): string {
+    private function generate_compose(): string {
         return <<<YAML
 services:
   apache:
@@ -109,10 +144,10 @@ services:
       intranet:
       main_client_intranet:
         aliases:
-          - {$this->safeUsername}.{$this->domain}
+          - {$this->safe_subdomain}.{$this->domain}
   filebrowser:
     image: filebrowser/filebrowser
-    container_name: files{$this->safeUsername}
+    container_name: files{$this->safe_subdomain}
     restart: always
     volumes:
       - ./website:/srv/website
@@ -123,23 +158,23 @@ services:
     entrypoint: ["./filebrowser", "--noauth"]
   mariadb:
     image: mariadb:11.8.1-ubi9-rc
-    container_name: mariadb{$this->safeUsername}
+    container_name: mariadb{$this->safe_subdomain}
     restart: always
     environment:
-      - MARIADB_ROOT_PASSWORD={$this->password}
+      - MARIADB_ROOT_PASSWORD={$this->db_password}
     volumes:
       - db:/var/lib/mysql
     networks:
       intranet:
   phpmyadmin:
     image: phpmyadmin
-    container_name: phpmyadmin{$this->safeUsername}
+    container_name: phpmyadmin{$this->safe_subdomain}
     restart: always
     depends_on:
       - mariadb
     environment:
-      - PMA_HOST=mariadb{$this->safeUsername}
-      - PMA_ABSOLUTE_URI=https://{$this->safeUsername}.{$this->domain}/admin/phpmyadmin/
+      - PMA_HOST=mariadb{$this->safe_subdomain}
+      - PMA_ABSOLUTE_URI=https://{$this->safe_subdomain}.{$this->domain}/admin/phpmyadmin/
     networks:
       intranet:
 networks:
@@ -152,10 +187,10 @@ volumes:
 YAML;
     }
 
-    private function generateHttpdConf(): string {
+    private function generate_httpdconf(): string {
         return <<<HTTPD
 <VirtualHost *:80>
-    ServerName {$this->safeUsername}.{$this->domain}
+    ServerName {$this->safe_subdomain}.{$this->domain}
     RedirectMatch 301 ^/admin$ /admin/
     DocumentRoot /var/www/html
     <Directory /var/www/html>
@@ -183,11 +218,11 @@ YAML;
     RedirectMatch 301 ^/admin/phpmyadmin$ /admin/phpmyadmin/
     RedirectMatch 301 ^/admin/files$ /admin/files/
     ProxyPreserveHost On
-    ProxyPass /admin/phpmyadmin/ http://phpmyadmin{$this->safeUsername}:80/
-    ProxyPassReverse /admin/phpmyadmin/ http://phpmyadmin{$this->safeUsername}:80/
+    ProxyPass /admin/phpmyadmin/ http://phpmyadmin{$this->safe_subdomain}:80/
+    ProxyPassReverse /admin/phpmyadmin/ http://phpmyadmin{$this->safe_subdomain}:80/
     ProxyPassReverseCookiePath /admin/phpmyadmin /admin/phpmyadmin
-    ProxyPass /admin/files/ http://files{$this->safeUsername}:80/admin/files/
-    ProxyPassReverse /admin/files/ http://files{$this->safeUsername}:80/admin/files/
+    ProxyPass /admin/files/ http://files{$this->safe_subdomain}:80/admin/files/
+    ProxyPassReverse /admin/files/ http://files{$this->safe_subdomain}:80/admin/files/
     ProxyPassReverseCookiePath /admin/files /admin/files
     ErrorLog /proc/self/fd/2
     CustomLog /proc/self/fd/1 combined
@@ -195,7 +230,7 @@ YAML;
 HTTPD;
     }
 
-    private function generateFileBrowserConfig(): string {
+    private function generate_filebrowser_config(): string {
         return json_encode([
             "port" => 80,
             "baseURL" => "/admin/files",
@@ -203,18 +238,18 @@ HTTPD;
             "log" => "stdout",
             "database" => "/database.db",
             "root" => "/srv",
-            "username" => $this->safeUsername,
-            "password" => $this->hash
+            "username" => "admin",
+            "password" => "admin",
         ], JSON_PRETTY_PRINT);
     }
 
-    private function generateDockerfile(): string {
+    private function generate_dockerfile(): string {
         return <<<DOCKER
 FROM php:8.2-apache
 RUN a2enmod proxy proxy_http rewrite headers && \\
     docker-php-ext-install mysqli pdo pdo_mysql && \\
     cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
-RUN ["htpasswd", "-cbB", "/etc/apache2/.htpasswd", "{$this->safeUsername}", "{$this->password}"]
+RUN ["htpasswd", "-cbB", "/etc/apache2/.htpasswd", "{$this->raw_username}", "{$this->password}"]
 CMD ["apache2-foreground"]
 DOCKER;
     }
@@ -222,6 +257,6 @@ DOCKER;
     private function log(string $msg): void {
         $timestamp = date("Y-m-d H:i:s");
         $safeMsg = htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        file_put_contents($this->logFile, "[$timestamp] $safeMsg\n", FILE_APPEND);
+        file_put_contents($this->log_file, "[$timestamp] $safeMsg\n", FILE_APPEND);
     }
 }

@@ -20,13 +20,13 @@ body {
   font-family: var(--font);
   min-height: 100vh;
   padding: 20px;
-  padding-top: 80px; /* offset for fixed navbar */
+  padding-top: 80px;
 }
 
 .container {
   text-align: center;
   max-width: 600px;
-  margin: 0 auto; /* center horizontally */
+  margin: 0 auto;
 }
 
 h1 {
@@ -62,7 +62,7 @@ form {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   width: 100%;
   max-width: 400px;
-  margin: 0 auto; /* center horizontally */
+  margin: 0 auto;
 }
 
 form h2 {
@@ -103,8 +103,6 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background-color: #0b5ed7;
 }
-
-/* ===== Navbar Styles ===== */
 
 .navbar {
   width: 100%;
@@ -148,7 +146,7 @@ button[type="submit"]:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 80px); /* full height minus navbar */
+  min-height: calc(100vh - 80px);
   text-align: center;
 }
 
@@ -167,16 +165,16 @@ button[type="submit"]:hover {
 
 .input-with-button {
   display: flex;
-  align-items: center;  /* vertically center children */
+  align-items: center;
   width: 100%;
-  position: relative;   /* keep relative for absolute positioning fallback if needed */
+  position: relative;
 }
 
 .input-with-button input {
   width: 100%;
   padding-right: 40px;
   box-sizing: border-box;
-  height: 40px; /* explicitly define height if necessary */
+  height: 40px;
 }
 
 .toggle-password {
@@ -193,13 +191,13 @@ button[type="submit"]:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 0; /* remove extra line height */
-  color: #555; /* icon stroke inherits currentColor */
+  line-height: 0;
+  color: #555;
 }
 
 .toggle-password svg {
   stroke: currentColor;
   width: 20px;
   height: 20px;
-  pointer-events: none; /* so clicks go to button */
+  pointer-events: none;
 }

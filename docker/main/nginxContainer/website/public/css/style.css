@@ -41,20 +41,6 @@ p {
   margin-bottom: 2rem;
 }
 
-a.button {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  text-decoration: none;
-  color: #fff;
-  background-color: var(--accent-green);
-  border-radius: var(--border-radius);
-  transition: background 0.3s ease;
-}
-
-a.button:hover {
-  background-color: #218838;
-}
-
 form {
   background-color: var(--card-bg);
   padding: 2rem;
@@ -211,4 +197,18 @@ button[type="submit"]:hover {
   background-color: #2e2e2e; /* Slightly lighter gray than form bg */
   padding: 1rem;
   border-radius: var(--border-radius);
+}
+
+a.button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: #fff;
+  background-color: var(--accent-green);
+  border-radius: var(--border-radius);
+  transition: background 0.3s ease;
+}
+
+a.button:hover {
+  background-color: #218838;
 }

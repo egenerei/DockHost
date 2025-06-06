@@ -10,7 +10,7 @@
   <div class="fullscreen-center">
     <h1>Welcome to DockHost</h1>
     <p> Create and deploy your website in a second</p>
-    <a href="register.php" class="button">Register</a>
+    <a href="create_account.php" class="button">Register</a>
   </div>
 </body>
 </html>

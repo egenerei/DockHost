@@ -1,98 +1,68 @@
 <?php
+require_once 'db.php';
+require_once 'user_account.class.php';
 
-require_once '../includes/db.php';
-
-class UserRegistration {
-    private string $raw_username;
-    private string $safe_username;
-    private string $password;
-    private string $confirm_password;
-    private string $hash;
-    private string $email;
+class user_website_setup extends user_account {
     private string $raw_subdomain;
     private string $safe_subdomain;
-    private string $user_dir;
-    private string $domain;
-    private string $log_file = '../logs/dockhost_register.log';
     private string $db_password;
     private string $confirm_db_password;
+    private string $domain;
+    private string $user_dir;
+    private string $log_file = '../logs/dockhost_register.log';
 
-    public function __construct(string $username, string $email, string $subdomain, string $password, string $confirm_password, string $db_password,string $confirm_db_password, string $domain) {
-        # Username checks
-        $this->raw_username = trim($username);
+    public function __construct(user_account $account, string $subdomain, string $db_password, string $confirm_db_password, string $domain) {
+        parent::__construct( $account->getUsername(), $account->getEmail(), $account->password, $account->confirm_password);
 
-        # Validate: only letters (A–Z, a–z), digits, hyphens, and underscores
-        if (!preg_match('/^[a-zA-Z0-9_-]{4,32}$/', $this->raw_username)) {
-            $this->log("Invalid username: '{$this->raw_username}'");
-            throw new Exception("Username must contain only letters (A–Z, a–z), digits, hyphens, and underscores, and be 1–32 characters long.");
-        }
-
-        $this->safe_username = strtolower($this->raw_username);
-
-        #Subdomain checks
         $this->raw_subdomain = strtolower(trim($subdomain));
-
         if (!preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/', $this->raw_subdomain)) {
             $this->log("Invalid subdomain format: '{$this->raw_subdomain}'");
-            throw new Exception("Subdomain contains invalid characters. Only lowercase letters, digits, and hyphens are allowed. It must not start or end with a hyphen.");
+            throw new Exception("Invalid subdomain. Must follow RFC-1123!");
         }
-
+        if ($this->subdomain_exists()) {
+            $this->log("Subdomain already in use: {$this->raw_subdomain}");
+            throw new Exception("Subdomain already exists!");
+        }
         $this->safe_subdomain = $this->raw_subdomain;
 
-        #Password checks
-        #Access password
-        $this->password = $password;
-        $this->confirm_password = $confirm_password;
-        $minLength = 12;
-        $maxLength = 128;
-
-        if ($this->password != $this->confirm_password) {
-           throw new Exception("Passwords are not the same");
-        }
-
-        if (strlen($password) < $minLength || strlen($password) > $maxLength) {
-            throw new Exception("Password must be between $minLength and $maxLength characters.");
-        }
-
-        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])/', $password)) {
-            throw new Exception("Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.");
-        }
-        $this->hash = password_hash($password, PASSWORD_BCRYPT);
-
-        #Database Password
         $this->db_password = $db_password;
         $this->confirm_db_password = $confirm_db_password;
-        $minLength = 12;
-        $maxLength = 128;
 
-        if ($this->db_password != $this->confirm_db_password) {
-           throw new Exception("Database passwords are not the same");
-        }
+        $this->validate_db_password();
 
-        if (strlen($this->db_password) < $minLength || strlen($this->db_password) > $maxLength) {
-            throw new Exception("Database password must be between $minLength and $maxLength characters.");
-        }
-
-        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])/', $this->db_password)) {
-            throw new Exception("Database password must include at least one uppercase letter, one lowercase letter, one number, and one special character.");
-        }
-
-        #Setting other properties
         $this->domain = $domain;
         $this->user_dir = '/clients/' . $this->safe_subdomain;
-        $this->email = $email;
     }
 
+    private function subdomain_exists(): bool {
+        $stmt = get_pdo()->prepare("SELECT 1 FROM users WHERE subdomain = :subdomain LIMIT 1");
+        $stmt->execute([':subdomain' => $this->raw_subdomain]);
+        return (bool) $stmt->fetchColumn();
+    }
 
-    public function register(PDO $pdo): void {
-        $this->store_in_database($pdo);
+    private function validate_db_password(): void {
+        if ($this->db_password !== $this->confirm_db_password) {
+            throw new Exception("Database passwords do not match!");
+        }
+
+        if (strlen($this->db_password) < 12 || strlen($this->db_password) > 128) {
+            throw new Exception("DB password must be between 12–128 characters!");
+        }
+
+        if (!preg_match('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])/', $this->db_password)) {
+            throw new Exception("DB password must include upper/lowercase, number, special character!");
+        }
+    }
+
+    public function register(): void {
+        $this->store_in_database();
         $this->create_user_directory();
         $this->generate_user_files();
     }
 
-    private function store_in_database(PDO $pdo): void {
+    private function store_in_database(): void {
         try {
-            $stmt = $pdo->prepare("INSERT INTO users (username,email,subdomain, password) VALUES (?, ?, ?, ?)");
+            $stmt = get_pdo()->prepare("INSERT INTO users (username,email,subdomain, password) VALUES (?, ?, ?, ?)");
             $stmt->execute([$this->raw_username,$this->email, $this->safe_subdomain, $this->hash]);
             $this->log("User registered: {$this->raw_username}");
         } catch (PDOException $e) {
@@ -260,3 +230,4 @@ DOCKER;
         file_put_contents($this->log_file, "[$timestamp] $safeMsg\n", FILE_APPEND);
     }
 }
+

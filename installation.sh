@@ -110,10 +110,10 @@ services:
     image: filebrowser/filebrowser
     restart: always
     volumes:
-      - ./nginxContainer/website:/srv
+      - ./nginxContainer/website:/srv/website
       - ../clients:/srv/clients
-      - ./fileBrowserContainer/.filebrowser.json:/.filebrowser.json:ro
       - db:/srv/db_files:ro
+      - ./fileBrowserContainer/.filebrowser.json:/.filebrowser.json:ro
     networks:
       intranet:
 volumes:

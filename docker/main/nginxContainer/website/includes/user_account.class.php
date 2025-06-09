@@ -59,19 +59,16 @@ class user_account {
         }
     }
 
-    public function getUsername(): string {
+    public function get_username(): string {
         return $this->raw_username;
     }
 
-    public function getEmail(): string {
+    public function get_email(): string {
         return $this->email;
     }
 
-    public function getHashedPassword(): string {
-        return $this->hash;
+    public function get_password(): string {
+        return $this->password;
     }
 
-    public function getSafeUsername(): string {
-        return $this->safe_username;
-    }
 }

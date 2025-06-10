@@ -102,6 +102,8 @@ services:
       - ./nginxContainer/website:/usr/share/nginx/html
       - ../clients:/clients
       - db:/db
+    command: >
+      sh -c "touch /db/clients.sqlite && chown -R www-data:www-data /usr/share/nginx/html /clients /db && chmod -R 755 /usr/share/nginx/html /clients /db && php-fpm"
   filebrowser:
     image: filebrowser/filebrowser
     restart: always

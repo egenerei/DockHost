@@ -14,3 +14,4 @@ docker/main/fileBrowserContainer
 docker/clients
 certs
 autoDockerUp/docker-compose-watch.sh
+php_prod_limpio.ini

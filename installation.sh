@@ -153,6 +153,7 @@ server {
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
     ssl_session_cache shared:SSL:10m;
+    client_max_body_size 100M;
     root /usr/share/nginx/html/public;
     location / {
         index index.php;

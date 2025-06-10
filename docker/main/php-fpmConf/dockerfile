@@ -2,6 +2,8 @@ FROM php:fpm-alpine
 
 WORKDIR /usr/share/nginx/html
 
+COPY php.ini /usr/local/etc/php/php.ini
+
 RUN apk add --no-cache \
     libpng libjpeg-turbo freetype libzip libxml2 icu-libs oniguruma && \
     apk add --no-cache --virtual .build-deps \

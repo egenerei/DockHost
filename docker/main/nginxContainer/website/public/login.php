@@ -3,10 +3,13 @@ session_start();
 require_once '../includes/login.class.php';
 require_once '../includes/db.php';
 $errorMessage = null;
-#PORBAR
+
 if (isset($_SESSION['login'])) {
     header("Location: admin.php");
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['username'], $_POST['password'])) {
         $errorMessage = "Missing required fields.";
     } else {

@@ -26,7 +26,7 @@ if (isset($_SESSION['login'])) {
 } else {
     header("Location: login.php");
     exit;
-    }
+}
 
 // ---------- CONFIG ----------------------------------------------------------
 $ALLOWED_DIRS = [

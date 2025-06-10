@@ -3,6 +3,23 @@
   hosts: all
   become: true
   tasks:
+    - name: Remove conflicting Docker packages from Ubuntu repo
+      apt:
+        name:
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
+        purge: yes
+
+    - name: Autoremove unnecessary packages
+      apt:
+        autoremove: yes
+        purge: yes
+
     - name: Install packages needed to add docker's repository
       apt:
         name:

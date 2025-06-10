@@ -90,7 +90,7 @@ services:
     depends_on:
       - php
     networks:
-      intranet:
+      default:
       client_intranet:
   php:
     build: ./php-fpmConf/
@@ -102,10 +102,6 @@ services:
       - ./nginxContainer/website:/usr/share/nginx/html
       - ../clients:/clients
       - db:/db
-    command: >
-      sh -c "touch /db/clients.sqlite && chown -R www-data:www-data /usr/share/nginx/html /clients /db && chmod -R 755 /usr/share/nginx/html /clients /db && php-fpm"
-    networks:
-      intranet:
   filebrowser:
     image: filebrowser/filebrowser
     restart: always
@@ -114,13 +110,9 @@ services:
       - ./nginxContainer/website:/srv/website
       - ../clients:/srv/clients
       - db:/srv/db_files:ro
-    networks:
-      intranet:
 volumes:
   db:
 networks:
-  intranet:
-    driver: bridge
   client_intranet:
 EOF
 

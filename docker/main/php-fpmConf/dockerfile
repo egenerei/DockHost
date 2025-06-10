@@ -1,9 +1,18 @@
 FROM php:fpm-alpine
 
-RUN apk add --no-cache --virtual .build-deps \
-    g++ make autoconf libzip-dev libpng-dev libjpeg-turbo-dev freetype-dev oniguruma-dev libxml2-dev icu-dev \
-  && docker-php-ext-configure gd --with-freetype --with-jpeg \
-  && docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl \
-  && apk del .build-deps
-
 WORKDIR /usr/share/nginx/html
+
+RUN mkdir /clients /db && \
+    chown -R www-data:www-data /usr/share/nginx/html /clients /db && \
+    chmod -R 755 /usr/share/nginx/html /clients /db && \
+    touch /db/clients.sqlite
+
+RUN apk add --no-cache \
+    libpng libjpeg-turbo freetype libzip libxml2 icu-libs oniguruma && \
+    apk add --no-cache --virtual .build-deps \
+    g++ make autoconf libzip-dev libpng-dev libjpeg-turbo-dev freetype-dev oniguruma-dev libxml2-dev icu-dev  && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl && \
+    apk del .build-deps
+
+ENTRYPOINT ["php-fpm"]

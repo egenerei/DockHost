@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/user_website_setup.class.php';
+require_once '../includes/login.class.php';
 require_once '../includes/db.php';
 $errorMessage = null;
 $account = unserialize($_SESSION['account']);
@@ -9,18 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMessage = "Missing required fields.";
     } else {
         try {
-            $setup = new user_website_setup($account, $_POST['subdomain'], $_POST['db_password'], $_POST['confirm_db_password'], $domain);
+            $setup = new user_website_setup($account, $_POST['subdomain'], $_POST['db_password'], $_POST['confirm_db_password']);
             $setup->register();
-            session_destroy();
-            echo '<!DOCTYPE html>
-              <html>
-                  <head>
-                    <link rel="stylesheet" href="../css/style.css">
-                  </head>
-                <body>
-                  <a href="http://' . $_POST['subdomain'] . '.' . $domain . '/admin/" class="button">Administration</a>
-                </body>
-              </html>';
+            $login = new user_login($setup->get_username(),  $setup->get_password());
+            $_SESSION['login'] = serialize($login);
+            header('Location: admin.php');
             exit;
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();

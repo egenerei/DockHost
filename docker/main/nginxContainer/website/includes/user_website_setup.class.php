@@ -11,8 +11,8 @@ class user_website_setup extends user_account {
     private string $user_dir;
     private string $log_file = '../logs/dockhost_register.log';
 
-    public function __construct(user_account $account, string $subdomain, string $db_password, string $confirm_db_password, string $domain) {
-        parent::__construct( $account->getUsername(), $account->getEmail(), $account->password, $account->confirm_password);
+    public function __construct(user_account $account, string $subdomain, string $db_password, string $confirm_db_password) {
+        parent::__construct( $account->get_username(), $account->get_email(), $account->password, $account->confirm_password);
 
         $this->raw_subdomain = strtolower(trim($subdomain));
         if (!preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/', $this->raw_subdomain)) {
@@ -30,7 +30,7 @@ class user_website_setup extends user_account {
 
         $this->validate_db_password();
 
-        $this->domain = $domain;
+        $this->domain = get_domain();
         $this->user_dir = '/clients/' . $this->safe_subdomain;
     }
 
@@ -73,23 +73,30 @@ class user_website_setup extends user_account {
 
     private function create_user_directory(): void {
         if (!is_dir($this->user_dir) && !mkdir($this->user_dir, 0755, true)) {
-            $this->log("Failed to create directory: {$this->user_dir}");
-            throw new Exception("Failed to create directory. Check permissions.");
+            $this->log("Failed to create main directory: {$this->user_dir}");
+            throw new Exception("Failed to create main directory. Check permissions.");
         }
-
         if (!is_writable($this->user_dir)) {
-            $this->log("Directory not writable: {$this->user_dir}");
-            throw new Exception("Directory exists but is not writable.");
+            $this->log("Main directory not writable: {$this->user_dir}");
+            throw new Exception("Main directory exists but is not writable.");
         }
 
-        $this->log("User directory ready: {$this->user_dir}");
+        $user_website_dir = $this->user_dir.'/website';
+        if (!is_dir($user_website_dir) && !mkdir($user_website_dir, 0755, true)) {
+            $this->log("Failed to create website directory: {$user_website_dir}");
+            throw new Exception("Website to create admin directory. Check permissions.");
+        }
+        if (!is_writable($user_website_dir)) {
+            $this->log("Website directory not writable: {$this->user_dir}");
+            throw new Exception("Website directory exists but is not writable.");
+        }
+        $this->log("User directories ready: {$this->user_dir}");
     }
 
     private function generate_user_files(): void {
         $this->write_file("dockerfile", $this->generate_dockerfile());
         $this->write_file("compose.yaml", $this->generate_compose());
         $this->write_file("httpd.conf", $this->generate_httpdconf());
-        $this->write_file(".filebrowser.json", $this->generate_filebrowser_config());
     }
 
     private function write_file(string $filename, string $content): void {
@@ -108,24 +115,12 @@ services:
     restart: always
     volumes:
       - ./website:/var/www/html
-      - ./admin:/var/www/admin:ro
       - ./httpd.conf:/etc/apache2/sites-available/000-default.conf:ro
     networks:
-      intranet:
+      default:
       main_client_intranet:
         aliases:
           - {$this->safe_subdomain}.{$this->domain}
-  filebrowser:
-    image: filebrowser/filebrowser
-    container_name: files{$this->safe_subdomain}
-    restart: always
-    volumes:
-      - ./website:/srv/website
-      - ./.filebrowser.json:/.filebrowser.json:ro
-      - db:/srv/database:ro
-    networks:
-      intranet:
-    entrypoint: ["./filebrowser", "--noauth"]
   mariadb:
     image: mariadb:11.8.1-ubi9-rc
     container_name: mariadb{$this->safe_subdomain}
@@ -134,8 +129,6 @@ services:
       - MARIADB_ROOT_PASSWORD={$this->db_password}
     volumes:
       - db:/var/lib/mysql
-    networks:
-      intranet:
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin{$this->safe_subdomain}
@@ -144,90 +137,50 @@ services:
       - mariadb
     environment:
       - PMA_HOST=mariadb{$this->safe_subdomain}
-      - PMA_ABSOLUTE_URI=https://{$this->safe_subdomain}.{$this->domain}/admin/phpmyadmin/
-    networks:
-      intranet:
+      - PMA_ABSOLUTE_URI=https://{$this->safe_subdomain}.{$this->domain}/phpmyadmin/
 networks:
   main_client_intranet:
     external: true
-  intranet:
-    driver: bridge
 volumes:
   db:
 YAML;
     }
-
     private function generate_httpdconf(): string {
         return <<<HTTPD
 <VirtualHost *:80>
     ServerName {$this->safe_subdomain}.{$this->domain}
-    RedirectMatch 301 ^/admin$ /admin/
     DocumentRoot /var/www/html
     <Directory /var/www/html>
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
-    Alias /admin/ /var/www/admin/
-    <Directory /var/www/admin>
-        Options -Indexes +FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-    <Location "/admin/">
-        AuthType Basic
-        AuthName "Restricted Admin Area"
-        AuthUserFile "/etc/apache2/.htpasswd"
-        Require valid-user
-    </Location>
-    <Directory "/var/www/admin">
-        <Files ".ht*">
-            Require all denied
-        </Files>
-    </Directory>
-    RedirectMatch 301 ^/admin/phpmyadmin$ /admin/phpmyadmin/
-    RedirectMatch 301 ^/admin/files$ /admin/files/
+    RedirectMatch 301 ^/phpmyadmin$ /phpmyadmin/
     ProxyPreserveHost On
-    ProxyPass /admin/phpmyadmin/ http://phpmyadmin{$this->safe_subdomain}:80/
-    ProxyPassReverse /admin/phpmyadmin/ http://phpmyadmin{$this->safe_subdomain}:80/
-    ProxyPassReverseCookiePath /admin/phpmyadmin /admin/phpmyadmin
-    ProxyPass /admin/files/ http://files{$this->safe_subdomain}:80/admin/files/
-    ProxyPassReverse /admin/files/ http://files{$this->safe_subdomain}:80/admin/files/
-    ProxyPassReverseCookiePath /admin/files /admin/files
+    ProxyPass /phpmyadmin/ http://phpmyadmin{$this->safe_subdomain}:80/
+    ProxyPassReverse /phpmyadmin/ http://phpmyadmin{$this->safe_subdomain}:80/
     ErrorLog /proc/self/fd/2
     CustomLog /proc/self/fd/1 combined
 </VirtualHost>
 HTTPD;
     }
 
-    private function generate_filebrowser_config(): string {
-        return json_encode([
-            "port" => 80,
-            "baseURL" => "/admin/files",
-            "address" => "",
-            "log" => "stdout",
-            "database" => "/database.db",
-            "root" => "/srv",
-            "username" => "admin",
-            "password" => "admin",
-        ], JSON_PRETTY_PRINT);
-    }
-
     private function generate_dockerfile(): string {
         return <<<DOCKER
 FROM php:8.2-apache
-RUN a2enmod proxy proxy_http rewrite headers && \\
-    docker-php-ext-install mysqli pdo pdo_mysql && \\
-    cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
-RUN ["htpasswd", "-cbB", "/etc/apache2/.htpasswd", "{$this->raw_username}", "{$this->password}"]
+RUN apt-get update && apt-get install -y libapache2-mod-authnz-external && \
+    a2enmod ssl proxy proxy_http rewrite headers authz_user authz_groupfile auth_basic auth_digest cgi dir && \
+    docker-php-ext-install mysqli pdo pdo_mysql && \
+    cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini && \
+    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 CMD ["apache2-foreground"]
 DOCKER;
     }
 
     private function log(string $msg): void {
         $timestamp = date("Y-m-d H:i:s");
-        $safeMsg = htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        file_put_contents($this->log_file, "[$timestamp] $safeMsg\n", FILE_APPEND);
+        $safe_msg = htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        file_put_contents($this->log_file, "[$timestamp] $safe_msg\n", FILE_APPEND);
     }
 }
 

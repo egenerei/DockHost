@@ -221,6 +221,7 @@ inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
                 (
                     cd "\$NEW_PATH"
                     safeUsername=\$(basename "\$NEW_PATH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+                    export COMPOSE_BAKE=true
                     docker compose up -d >> "\$LOG_FILE" 2>&1
                     echo "\$(date) - Client \$safeUsername READY" >> "\$LOG_FILE"
                 )

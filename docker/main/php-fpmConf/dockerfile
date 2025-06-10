@@ -2,10 +2,9 @@ FROM php:fpm-alpine
 
 WORKDIR /usr/share/nginx/html
 
-RUN mkdir /clients /db && \
-    chown -R www-data:www-data /usr/share/nginx/html /clients /db && \
-    chmod -R 755 /usr/share/nginx/html /clients /db && \
-    touch /db/clients.sqlite
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
 
 RUN apk add --no-cache \
     libpng libjpeg-turbo freetype libzip libxml2 icu-libs oniguruma && \
@@ -15,4 +14,4 @@ RUN apk add --no-cache \
     docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl && \
     apk del .build-deps
 
-ENTRYPOINT ["php-fpm"]
+ENTRYPOINT ["/entrypoint.sh"]

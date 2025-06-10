@@ -115,14 +115,12 @@ services:
     restart: always
     volumes:
       - ./website:/var/www/html
-      - ./admin:/var/www/admin:ro
       - ./httpd.conf:/etc/apache2/sites-available/000-default.conf:ro
     networks:
-      intranet:
+      default:
       main_client_intranet:
         aliases:
           - {$this->safe_subdomain}.{$this->domain}
-          - admin{$this->safe_subdomain}
   mariadb:
     image: mariadb:11.8.1-ubi9-rc
     container_name: mariadb{$this->safe_subdomain}
@@ -131,8 +129,6 @@ services:
       - MARIADB_ROOT_PASSWORD={$this->db_password}
     volumes:
       - db:/var/lib/mysql
-    networks:
-      intranet:
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin{$this->safe_subdomain}
@@ -142,13 +138,9 @@ services:
     environment:
       - PMA_HOST=mariadb{$this->safe_subdomain}
       - PMA_ABSOLUTE_URI=https://{$this->safe_subdomain}.{$this->domain}/phpmyadmin/
-    networks:
-      intranet:
 networks:
   main_client_intranet:
     external: true
-  intranet:
-    driver: bridge
 volumes:
   db:
 YAML;
@@ -176,9 +168,11 @@ HTTPD;
     private function generate_dockerfile(): string {
         return <<<DOCKER
 FROM php:8.2-apache
-RUN a2enmod proxy proxy_http rewrite headers && \\
-    docker-php-ext-install mysqli pdo pdo_mysql && \\
-    cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+RUN apt-get update && apt-get install -y libapache2-mod-authnz-external && \
+    a2enmod ssl proxy proxy_http rewrite headers authz_user authz_groupfile auth_basic auth_digest cgi dir && \
+    docker-php-ext-install mysqli pdo pdo_mysql && \
+    cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini && \
+    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 CMD ["apache2-foreground"]
 DOCKER;
     }

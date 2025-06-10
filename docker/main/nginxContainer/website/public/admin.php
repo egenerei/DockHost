@@ -207,7 +207,7 @@ echo "<form method='post' action='?action=save'>
                   style='font-family:monospace'>{$escaped}</textarea>
     </div>
     <button class='btn btn-primary me-2'>Save</button>
-    <a href='?dir=".urlencode($dir)."' class='btn btn-secondary'>Exit without saving</a>
+    <a href='?dir=".urlencode($dir)."' class='btn btn-secondary'>Exit file editor</a>
 </form>
 
 <script>

@@ -2,12 +2,6 @@ FROM php:fpm-alpine
 
 WORKDIR /usr/share/nginx/html
 
-COPY entrypoint.sh /entrypoint.sh
-
-RUN chmod +x /entrypoint.sh && \
-    mkdir /clients /db && \
-    touch /db/clients.sqlite
-
 RUN apk add --no-cache \
     libpng libjpeg-turbo freetype libzip libxml2 icu-libs oniguruma && \
     apk add --no-cache --virtual .build-deps \
@@ -15,5 +9,3 @@ RUN apk add --no-cache \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install gd mysqli pdo_mysql mbstring xml zip bcmath exif intl && \
     apk del .build-deps
-
-ENTRYPOINT ["/entrypoint.sh"]

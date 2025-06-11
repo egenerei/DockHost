@@ -13,7 +13,7 @@ const eyeOffIcon = `
   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
     d="M13.875 18.825A10.05 10.05 0 0112 19
        c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 012.478-4.377
-       m1.722-1.684A9.969 9.969 0 0112 5
+       m1.722-1.684A9.969 9.969 a0 0112 5
        c4.478 0 8.268 2.943 9.542 7a9.987 9.987 0 01-4.12 5.591"/>
   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
     d="M3 3l18 18"/>

@@ -1,283 +1,289 @@
+/* styles.css | minimalistic, functional & responsive */
+
 :root {
-  --bg-color: #121212;
-  --text-color: #f1f1f1;
-  --card-bg: #1e1e1e;
-  --accent-color: #0d6efd;
-  --accent-hover: #5c6bc0;
-  --accent-green: #28a745;
-  --border-radius: 8px;
-  --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --text-color: #1f2937; /* gray-800 */
+  --bg-color: #ffffff;
+  --accent-color: #2563eb; /* blue-600 */
+  --accent-color-hover: #1d4ed8; /* blue-700 */
+  --error-color: #dc2626; /* red-600 */
+  --border-color: #e5e7eb; /* gray-200 */
 }
 
-* {
-  margin: 0;
-  padding: 0;
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html {
+  font-size: 100%;
+}
+
 body {
-  background-color: var(--bg-color);
+  margin: 0;
+  font-family: var(--font-family);
   color: var(--text-color);
-  font-family: var(--font);
-  min-height: 100vh;
-  padding: 20px;
-  padding-top: 80px;
+  background: var(--bg-color);
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-.container {
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-h1 {
-  font-size: 3rem;
+/* Links */
+a {
   color: var(--accent-color);
-  margin-bottom: 1rem;
+  text-decoration: none;
+}
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
 }
 
-h3, h4 {
-  margin-bottom: 0.5rem;
+/* Utility button class (and generic button element) */
+.button,
+button,
+input[type="submit"] {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+.button:hover,
+button:hover,
+input[type="submit"]:hover,
+.button:focus-visible,
+button:focus-visible,
+input[type="submit"]:focus-visible {
+  background: var(--accent-color-hover);
 }
 
-p {
-  font-size: 1.1rem;
-  color: #ccc;
-  margin-bottom: 0.5rem;
+/* ============================= */
+/* PASSWORD VISIBILITY TOGGLE    */
+/* ============================= */
+
+/* 1. Space for the button so text never hides underneath */
+.input-with-button > input[type="password"] {
+  padding-right: 3rem;           /* 2 rem button + 1 rem breathing room */
 }
 
-form {
-  background-color: var(--card-bg);
+/* 2. Reset everything the generic button rule set */
+.input-with-button .toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+
+  display: flex;                 /* centres the emoji/SVG perfectly */
+  align-items: center;
+  justify-content: center;
+
+  width: 2rem;
+  height: 2rem;
+  padding: 0;                    /* <<< remove the inherited 0.75 rem */
+  background: transparent;       /* <<< no white rectangle */
+  border: none;
+  cursor: pointer;
+}
+
+/* Eye icon (swap for SVG if you like) */
+.input-with-button .toggle-password::before {
+  content: '👁';
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--border-color);
+}
+
+/* Accent colour on hover/focus for accessibility */
+.input-with-button .toggle-password:hover::before,
+.input-with-button .toggle-password:focus-visible::before {
+  color: var(--accent-color);
+}
+
+/* Centre container used on landing/auth pages */
+.fullscreen-center {
+  flex: 1;
+  min-height: calc(100vh - 4rem); /* leaves room for nav if present */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding: 2rem;
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-form h2 {
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
-  color: var(--accent-color);
   text-align: center;
+  gap: 1rem;
 }
 
+/* Forms */
+form {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 input[type="text"],
 input[type="email"],
 input[type="password"] {
   width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: 1px solid #444;
-  border-radius: var(--border-radius);
-  background-color: #2c2c2c;
-  color: #fff;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 0;
 }
 
-input:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
-
-button[type="submit"] {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: var(--border-radius);
-  background-color: var(--accent-color);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-button[type="submit"]:hover {
-  background-color: #0b5ed7;
-}
-
-.navbar {
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: var(--card-bg);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
-
-.navbar-brand {
-  font-size: 1.5rem;
-  color: var(--accent-color);
-  font-weight: bold;
-}
-
-.navbar-links {
-  list-style: none;
-  display: flex;
-  gap: 1.5rem;
-}
-
-.navbar-links li a {
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.navbar-links li a:hover {
-  color: var(--accent-color);
-}
-
-.fullscreen-center {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 80px);
-  text-align: center;
-}
-
-.error-message {
-  background-color: #ffe5e5;
-  color: #b30000;
-  border: 1px solid #ff4d4d;
-  padding: 15px;
-  margin: 20px auto;
-  max-width: 600px;
-  text-align: center;
-  border-radius: 8px;
-  font-weight: bold;
-  font-family: monospace;
-}
-
+/* Password toggle layout */
 .input-with-button {
-  display: flex;
-  align-items: center;
-  width: 100%;
   position: relative;
 }
-
-.input-with-button input {
-  width: 100%;
-  padding-right: 40px;
-  box-sizing: border-box;
-  height: 40px;
-}
-
-.toggle-password {
+.input-with-button .toggle-password {
   position: absolute;
-  top: 38%;
-  right: 10px;
+  top: 50%;
+  right: 0.75rem;
   transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
   background: none;
   border: none;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
-  padding: 0;
+}
+.input-with-button .toggle-password::before {
+  content: '👁';
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+/* Error message */
+.error-message {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--error-color);
+  color: #fff;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+/* ---------------------------------------- */
+/* NAVIGATION BAR                          */
+/* ---------------------------------------- */
+
+.dh-navbar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  line-height: 0;
-  color: #555;
-}
-
-.toggle-password svg {
-  stroke: currentColor;
-  width: 20px;
-  height: 20px;
-  pointer-events: none;
-}
-
-.form-section {
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 2rem;
-  background-color: #2e2e2e;
-  padding: 1rem;
-  border-radius: var(--border-radius);
+  padding: 1rem 2rem;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  z-index: 999;
 }
 
-a.button {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  text-decoration: none;
-  color: #fff;
-  background-color: var(--accent-green);
-  border-radius: var(--border-radius);
-  transition: background 0.3s ease;
-}
-
-a.button:hover {
-  background-color: #218838;
-}
-
-.dashboard header {
-  text-align: center;
-  padding: 1rem;
-  background-color: var(--card-bg);
+.dh-nav-brand {
+  font-weight: 700;
+  font-size: 1.125rem;
   color: var(--text-color);
-  font-size: 1.5rem;
-  margin-top: 0px;
-  border-radius: var(--border-radius);
 }
 
-.dashboard .iframe-container {
-  flex: 1;
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-}
-
-.dashboard iframe {
-  flex: 1;
-  height: 100%;
+/* Hamburger / close button */
+.dh-nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
   border: none;
-  border-radius: var(--border-radius);
-  background-color: var(--card-bg);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
 }
 
-.dashboard .iframe-container > div {
-  flex: 1;
-  background-color: var(--card-bg);
-  padding: 1rem;
-  border-radius: var(--border-radius);
-}
-
-.dashboard h3,
-.dashboard h4 {
-  margin-bottom: 0.5rem;
-}
-
-.dashboard p {
-  margin-bottom: 0.5rem;
-}
-
-.dashboard .phpmyadmin {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  color: #fff;
-  background-color: var(--accent-color);
-  border-radius: var(--border-radius);
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-}
-
-.dashboard .phpmyadmin:hover {
-  background-color: var(--accent-hover);
-}
-
-.dashboard {
-  display: flex;
+/* Link list */
+.dh-nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;            /* hidden on mobile */
   flex-direction: column;
-  height: 100%;
+  gap: 1rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.dh-nav-links.open {        /* toggled via JS */
+  display: flex;
+}
+
+.dh-nav-links li a {
+  display: block;
+  padding: 0.75rem 2rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+.dh-nav-links li a:hover,
+.dh-nav-links li a:focus-visible {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+@media (min-width: 768px) {
+  .dh-nav-toggle {          /* hide hamburger on desktop */
+    display: none;
+  }
+  .dh-nav-links {
+    position: static;
+    display: flex !important;   /* override mobile hidden */
+    flex-direction: row;
+    gap: 2rem;
+    width: auto;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+  .dh-nav-links li a {
+    padding: 0;
+  }
+}
+/* ---------------------------------------- */
+/* RESPONSIVE TWEAKS & DARK MODE           */
+/* ---------------------------------------- */
+@media (min-width: 640px) {
+  .button,
+  button,
+  input[type="submit"] {
+    padding: 0.75rem 2rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #111827; /* gray-900 */
+    --text-color: #f3f4f6; /* gray-100 */
+    --border-color: #374151; /* gray-700 */
+  }
+
+  body { background: var(--bg-color); }
+
+  .dh-navbar { 
+    background:#1f2937;
+    border-bottom-color:#374151; 
+  }
+  .dh-nav-links {
+    background:#1f2937;
+    border-bottom-color:#374151; }
 }

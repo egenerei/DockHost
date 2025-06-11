@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DockHost - Login</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="text" name="username" placeholder="Username" required>
       <div class="input-with-button">
         <input type="password" id="password" name="password" placeholder="Password" required>
-        <button type="button" class="toggle-password" onclick="togglePassword('password', this)"></button>
+        <button type="button" class="icon-btn toggle-password" aria-label="Show password" onclick="togglePassword('password', this)"></button>
       </div>
       <button type="submit">Login</button>
     </form>

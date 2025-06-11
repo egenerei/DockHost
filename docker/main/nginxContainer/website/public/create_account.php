@@ -2,6 +2,12 @@
 session_start();
 require_once '../includes/user_account.class.php';
 require_once '../includes/db.php';
+
+if (isset($_SESSION['login'])) {
+    header("Location: admin.php");
+    exit;
+}
+
 $errorMessage = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['username'],$_POST['email'], $_POST['password'], $_POST['confirm_password'])) {
@@ -21,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DockHost - Create Account</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>

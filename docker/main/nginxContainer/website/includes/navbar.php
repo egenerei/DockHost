@@ -1,6 +1,6 @@
 <nav class="dh-navbar">
     <!-- Brand / site title -->
-    <a href="/" class="dh-nav-brand">DockHost</a>
+    <div class="dh-nav-brand ">DockHost</div>
 
     <!-- Hamburger button (hidden ≥768 px by CSS) -->
     <button class="dh-nav-toggle"

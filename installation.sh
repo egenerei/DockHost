@@ -33,9 +33,9 @@ read -rp "Enter the SSH user with sudo permissions on the server (e.g., ubuntu):
 # Prompt for the SSH private key file path (not required but recommended)
 read -rp "Enter the path to your SSH private key on this system (default: ~/.ssh/id_ed25519): " PRIVATE_KEY
 PRIVATE_KEY=${PRIVATE_KEY:-~/.ssh/id_ed25519}  # Default if blank
-# Database paramenters for the clients database
-read -rp "Main clients database name for DockHost: " DB_NAME
-read -rsp "Main client database password for DockHost: " DB_PASSWORD; echo
+# Database parameters for the clients database (for mariadb/mysql)
+#read -rp "Main clients database name for DockHost: " DB_NAME
+#read -rsp "Main client database password for DockHost: " DB_PASSWORD; echo
 # Filebrowser parameters for accesing all the app files and the clients' too
 read -rp "Enter username for the main filemanager: " USERNAME
 read -rsp "Enter password the main filemanager: " PASSWORD; echo
@@ -86,7 +86,7 @@ services:
     volumes:
       - ./nginxContainer/website:/usr/share/nginx/html:ro
       - ./nginxContainer/certs:/etc/nginx/ssl:ro
-      - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - php
     networks:

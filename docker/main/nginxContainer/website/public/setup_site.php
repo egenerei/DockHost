@@ -36,9 +36,6 @@ if (!isset($account)){
 <body>
   <?php include("../includes/navbar.php"); ?>
   <div class="fullscreen-center">
-    <?php if ($errorMessage): ?>
-      <div class="error-message"><?= htmlspecialchars($errorMessage) ?></div>
-    <?php endif; ?>
     <form method="POST">
       <h2>Your website settings</h2>
       <input type="text" name="subdomain" placeholder="Subdomain" required>
@@ -51,6 +48,9 @@ if (!isset($account)){
         <button type="button" class="toggle-password" onclick="togglePassword('confirm_db_password', this)"></button>
       </div>
       <button type="submit">Activate</button>
+      <?php if ($errorMessage): ?>
+        <div class="error-message"><?= htmlspecialchars($errorMessage) ?></div>
+      <?php endif; ?>
     </form>
   </div>
   <script src="../js/register.js"></script>

@@ -34,9 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
   <?php include("../includes/navbar.php"); ?>
   <div class="fullscreen-center">
-    <?php if ($errorMessage): ?>
-      <div class="error-message"><?= htmlspecialchars($errorMessage) ?></div>
-    <?php endif; ?>
     <form method="POST">
       <h2>Login</h2>
       <input type="text" name="username" placeholder="Username" required>
@@ -45,6 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="button" class="icon-btn toggle-password" aria-label="Show password" onclick="togglePassword('password', this)"></button>
       </div>
       <button type="submit">Login</button>
+      <?php if ($errorMessage): ?>
+        <div class="error-message"><?= htmlspecialchars($errorMessage) ?></div>
+      <?php endif; ?>
     </form>
   </div>
   <script src="../js/register.js"></script>

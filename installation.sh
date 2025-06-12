@@ -87,7 +87,7 @@ services:
       - ./nginxContainer/website:/usr/share/nginx/html:ro
       - ./nginxContainer/certs:/etc/nginx/ssl:ro
       - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf
-      - nginx_logs:/var/log/nginx
+      - logs:/var/log/nginx
     depends_on:
       - php
     networks:
@@ -103,6 +103,7 @@ services:
       - ./nginxContainer/website:/usr/share/nginx/html
       - ../clients:/clients
       - db:/db
+      - logs:/usr/share/nginx/html/logs
     command: >
       sh -c "touch /db/clients.sqlite && chown -R www-data:www-data /usr/share/nginx/html /clients /db && chmod -R 755 /usr/share/nginx/html /clients /db && php-fpm"
   filebrowser:
@@ -113,10 +114,10 @@ services:
       - ./nginxContainer/website:/srv/website
       - ../clients:/srv/clients
       - db:/srv/db_files:ro
-      - nginx_logs:/srv/logs/nginx_logs:ro
+      - logs:/srv/logs:ro
 volumes:
   db:
-  nginx_logs:
+  logs:
 networks:
   client_intranet:
 EOF

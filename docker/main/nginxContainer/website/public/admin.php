@@ -10,11 +10,6 @@
  *  • Whitelist of directories
  *  • List, upload, download, delete files
  *  • Session is now used **only** for CSRF token storage
- *
- * Requirements:
- *  • PHP 7.4+
- *  • Web‑server write permissions on target directories
- * -------------------------------------------------
  */
 
 session_start();
@@ -57,13 +52,11 @@ function safe_path(string $dir, string $file = ''): string
     $target = $file === ''
         ? $dir
         : rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($file, DIRECTORY_SEPARATOR);
-
     $realTarget = realpath($target);
     if ($realTarget === false) {
         http_response_code(404);
         exit('Not found');
     }
-
     // Check the canonical path against every allowed root
     foreach ($GLOBALS['ALLOWED_DIRS'] as $root) {
         $rootPath = rtrim(realpath($root), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
@@ -195,13 +188,12 @@ foreach (breadcrumb_options($GLOBALS['ALLOWED_DIRS'], $dir, $file) as $opt) {
 echo "</select></form>";
 
 $escaped = htmlspecialchars($contents, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-echo "<form method='post' action='?action=save'>
+echo "<form class='full-width-form' method='post' action='?action=save'>
     <input type='hidden' name='csrf' value='".csrf_token()."'>
     <input type='hidden' name='dir'  value='".htmlspecialchars($dir,  ENT_QUOTES)."'>
     <input type='hidden' name='file' value='".htmlspecialchars($file, ENT_QUOTES)."'>
     <div class='mb-3'>
         <label class='form-label fw-bold'>Editing: {$file}</label>
-        <!-- ✨ give the textarea an ID so JS can find it -->
         <textarea id='editor' name='contents' class='form-control'
                   rows='22' spellcheck='false'
                   style='font-family:monospace'>{$escaped}</textarea>
@@ -535,8 +527,6 @@ if ($in_root && $parent !== $dir) {
             <td>—</td><td>—</td><td></td>
           </tr>";
 }
-
-
 
 foreach ($files as $file) {
     $path  = $currentDir . DIRECTORY_SEPARATOR . $file;

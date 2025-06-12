@@ -16,3 +16,4 @@ certs
 autoDockerUp/docker-compose-watch.sh
 php_prod_limpio.ini
 website.yml
+sqltuner.txt

@@ -3,6 +3,10 @@
   hosts: all
   become: true
   tasks:
+    - name: Ensure the timezone is set to Europe/Madrid
+      ansible.builtin.timezone:
+        name: Europe/Madrid
+
     - name: Remove conflicting Docker packages from Ubuntu repo
       apt:
         name:

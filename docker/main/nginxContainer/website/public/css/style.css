@@ -131,6 +131,9 @@ form {
   flex-direction: column;
   gap: 1rem;
 }
+.full-width-form{
+  max-width: 100%;
+}
 input[type="text"],
 input[type="email"],
 input[type="password"] {
@@ -140,6 +143,7 @@ input[type="password"] {
   border-radius: 0.375rem;
   font-size: 1rem;
 }
+
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus {

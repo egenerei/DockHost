@@ -87,6 +87,7 @@ services:
       - ./nginxContainer/website:/usr/share/nginx/html:ro
       - ./nginxContainer/certs:/etc/nginx/ssl:ro
       - ./nginxContainer/nginxConf/php.conf:/etc/nginx/conf.d/default.conf
+      - nginx_logs:/var/log/nginx
     depends_on:
       - php
     networks:
@@ -112,8 +113,10 @@ services:
       - ./nginxContainer/website:/srv/website
       - ../clients:/srv/clients
       - db:/srv/db_files:ro
+      - nginx_logs:/srv/logs/nginx_logs:ro
 volumes:
   db:
+  nginx_logs:
 networks:
   client_intranet:
 EOF

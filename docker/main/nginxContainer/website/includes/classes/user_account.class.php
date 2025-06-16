@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once __DIR__ . '/../db/db.php';
 class user_account {
     protected string $raw_username;
     protected string $safe_username;

@@ -1,7 +1,8 @@
 <?php
 session_start();
-require_once '../includes/user_account.class.php';
-require_once '../includes/db.php';
+require_once '../includes/classes/user_account.class.php';
+require_once '../includes/db/db.php';
+require_once '../includes/functions/csrf.php';
 
 if (isset($_SESSION['login'])) {
     header("Location: admin.php");
@@ -10,7 +11,9 @@ if (isset($_SESSION['login'])) {
 
 $errorMessage = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['username'],$_POST['email'], $_POST['password'], $_POST['confirm_password'])) {
+    if (!verify_csrf()) {
+        $errorMessage = 'Invalid CSRF token.';
+    } elseif (!isset($_POST['username'],$_POST['email'], $_POST['password'], $_POST['confirm_password'])) {
         $errorMessage = "Missing required fields.";
     } else {
         try {
@@ -32,11 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <?php include("../includes/navbar.php"); ?>
+  <?php include("../includes/navbars/links_navbar.php"); ?>
   <div class="fullscreen-center">
     
     <form method="POST">
       <h2>Create Account</h2>
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES) ?>">
       <input type="text" name="username" placeholder="Username" required>
       <input type="email" name="email" placeholder="Email" required>
       <div class="input-with-button">

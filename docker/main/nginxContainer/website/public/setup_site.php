@@ -1,12 +1,16 @@
 <?php
 session_start();
-require_once '../includes/user_website_setup.class.php';
-require_once '../includes/login.class.php';
-require_once '../includes/db.php';
+require_once '../includes/classes/user_website_setup.class.php';
+require_once '../includes/classes/login.class.php';
+require_once '../includes/db/db.php';
+require_once '../includes/functions/csrf.php';
+
 $errorMessage = null;
 $account = unserialize($_SESSION['account']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['subdomain'],$_POST['db_password'], $_POST['confirm_db_password'])) {
+    if (!verify_csrf()) {
+        $errorMessage = 'Invalid CSRF token.';
+    } elseif (!isset($_POST['subdomain'],$_POST['db_password'], $_POST['confirm_db_password'])) {
         $errorMessage = "Missing required fields.";
     } else {
         try {
@@ -34,10 +38,11 @@ if (!isset($account)){
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <?php include("../includes/navbar.php"); ?>
+  <?php include("../includes/navbars/links_navbar.php"); ?>
   <div class="fullscreen-center">
     <form method="POST">
       <h2>Your website settings</h2>
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES) ?>">
       <input type="text" name="subdomain" placeholder="Subdomain" required>
       <div class="input-with-button">
         <input type="password" id="db_password" name="db_password" placeholder="Database password" required>

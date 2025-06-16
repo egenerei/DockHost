@@ -1,6 +1,6 @@
 <?php
-require_once 'db.php';
-require_once 'user_account.class.php';
+require_once __DIR__ . '/../db/db.php';
+require_once __DIR__ . '/user_account.class.php';
 
 class user_website_setup extends user_account {
     private string $raw_subdomain;

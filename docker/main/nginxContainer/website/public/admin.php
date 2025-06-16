@@ -12,9 +12,10 @@
  *  • Session is now used **only** for CSRF token storage
  */
 
+#Authentication
 session_start();
-require_once '../includes/login.class.php';
-require_once '../includes/db.php';
+require_once '../includes/classes/login.class.php';
+require_once '../includes/db/db.php';
 if (isset($_SESSION['login'])) {
     $login = unserialize($_SESSION['login']);
     $subdomain = $login->get_subdomain();
@@ -25,8 +26,7 @@ if (isset($_SESSION['login'])) {
 
 // ---------- CONFIG ----------------------------------------------------------
 $ALLOWED_DIRS = [
-    "/clients/$subdomain/website",
-    "/clients/$subdomain/db"
+    "/clients/$subdomain/website"
 ];
 
 // ---------- HELPER FUNCTIONS ------------------------------------------------
@@ -337,8 +337,6 @@ if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $failed++;
         }
     }
-
-
     /* decide which banner to show */
     if ($ok && !$failed) {
         $msg = 'upload_ok';
@@ -423,6 +421,42 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     exit;
 }
+/* =========================================================
+   RENAME –– rename a file or directory
+   ========================================================= */
+if ($action === 'rename' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
+    $dir     = $_POST['dir']     ?? '';
+    $oldname = $_POST['oldname'] ?? '';
+    $newname = $_POST['newname'] ?? '';
+
+    if (!preg_match('/^[A-Za-z0-9._-]+$/', $newname)) {
+        header("Location: admin.php?dir={$dir}&msg=rename_invalid");
+        exit;
+    }
+
+    $basePath = safe_path($dir);
+    $oldPath  = $basePath . DIRECTORY_SEPARATOR . $oldname;
+    $newPath  = $basePath . DIRECTORY_SEPARATOR . $newname;
+
+    if (!file_exists($oldPath)) {
+        header("Location: admin.php?dir={$dir}&msg=rename_missing");
+        exit;
+    }
+
+    if (file_exists($newPath)) {
+        header("Location: admin.php?dir={$dir}&msg=rename_exists");
+        exit;
+    }
+
+    if (rename($oldPath, $newPath)) {
+        header("Location: admin.php?dir={$dir}&msg=rename_ok");
+    } else {
+        header("Location: admin.php?dir={$dir}&msg=rename_fail");
+    }
+    exit;
+}
 
 // ---------- VIEWS -----------------------------------------------------------
 function render_header(string $title = 'PHP File Manager'): void
@@ -439,7 +473,8 @@ function render_header(string $title = 'PHP File Manager'): void
 
         <title>{$title}</title>
     </head><body class='bg-light'>";
-    include("../includes/navbar.php");
+    include("../includes/navbars/links_navbar.php");
+    // include("../includes/navbars/function_navbar.php");
     echo "<main class='container py-4'>";
 }
 
@@ -452,6 +487,7 @@ function render_footer(): void
 
 // MAIN DIRECTORY LISTING
 $dir = $_GET['dir'] ?? $ALLOWED_DIRS[0];
+$file = $_GET['file'] ?? '';
 $currentDir = safe_path($dir);
 
 $files = array_values(array_filter(
@@ -553,36 +589,41 @@ foreach ($files as $file) {
         $escDir  = htmlspecialchars($dir,  ENT_QUOTES);
         $escName = htmlspecialchars($file, ENT_QUOTES);
 
-        echo "<form method='post' action='?action=rmdir' class='d-inline ms-1'>
+        echo "<form method='post' action='?action=rmdir' class='d-inline me-1'>
                 <input type='hidden' name='csrf' value='".csrf_token()."'>
                 <input type='hidden' name='dir'  value='{$escDir}'>
                 <input type='hidden' name='name' value='{$escName}'>
-                <button class='btn btn-sm btn-danger'
+                <button class='btn btn-danger'
                         onclick='return confirm(\"Delete directory {$file}? This cannot be undone!\")'>
-                        Delete
+                    Delete
                 </button>
             </form>";
+
+        echo "<button class='btn btn-primary'
+                    type='button'
+                    onclick=\"showRenameDialog('{$escFile}')\">
+                Rename
+            </button>";
     }
 
     if (is_file($path)) {
         $escDir  = htmlspecialchars($dir,  ENT_QUOTES);
         $escFile = htmlspecialchars($file, ENT_QUOTES);
 
-        /* ---- download (GET) ---- */
         echo "<a href='?action=download&dir={$escDir}&file={$escFile}'
-                class='btn btn-sm btn-outline-primary me-1'>
-                Download
-            </a>";
+        class='btn btn-success me-1'>Download</a>";
 
-        /* ---- delete (POST) ---- */
+        echo "<button class='btn btn-primary'
+                    type='button'
+                    onclick=\"showRenameDialog('{$escFile}')\">
+                Rename
+            </button>";
+
         echo "<form method='post' action='?action=delete' class='d-inline'>
                 <input type='hidden' name='csrf' value='".csrf_token()."'>
                 <input type='hidden' name='dir'  value='{$escDir}'>
                 <input type='hidden' name='file' value='{$escFile}'>
-                <button class='btn btn-sm btn-danger'
-                        onclick='return confirm(\"Delete {$file}?\")'>
-                        Delete
-                </button>
+                <button class='btn btn-danger'>Delete</button>
             </form>";
     }
 
@@ -591,58 +632,150 @@ foreach ($files as $file) {
 
 echo "</tbody></table></div>";
 
-// Upload form
-echo "<h5 class='mt-5'>Upload Files</h5>
-<form method='post' enctype='multipart/form-data' action='?action=upload'>
-    <input type='hidden' name='csrf' value='".csrf_token()."'>
-    <input type='hidden' name='dir' value='{$dir}'>
-    <div class='mb-3'>
-        <input class='form-control'
-               type='file'
-               name='files[]'
-               multiple
-               directory>
-    </div>
-    <button class='btn btn-success'>Upload</button>
-</form>";
+// // Upload form
+// echo "<h5 class='mt-5'>Upload Files</h5>
+// <form method='post' enctype='multipart/form-data' action='?action=upload'>
+//     <input type='hidden' name='csrf' value='".csrf_token()."'>
+//     <input type='hidden' name='dir' value='{$dir}'>
+//     <div class='mb-3'>
+//         <input class='form-control'
+//                type='file'
+//                name='files[]'
+//                multiple
+//                directory>
+//     </div>
+//     <button class='btn btn-success'>Upload</button>
+// </form>";
 
-echo "<h5 class='mt-5'>Upload Directory</h5>
-<form method='post' enctype='multipart/form-data' action='?action=upload'>
-    <input type='hidden' name='csrf' value='".csrf_token()."'>
-    <input type='hidden' name='dir' value='{$dir}'>
-    <div class='mb-3'>
-        <input class='form-control'
-               type='file'
-               name='files[]'
-               multiple
-               webkitdirectory
-               directory>
-    </div>
-    <button class='btn btn-success'>Upload</button>
-</form>";
-/* ---------- New file ---------- */
-echo "<h5 class='mt-5'>Create new file</h5>
-<form method='post' action='?action=create' class='mb-4'>
-    <input type='hidden' name='csrf' value='".csrf_token()."'>
-    <input type='hidden' name='dir'  value='{$dir}'>
-    <div class='mb-3' style='max-width:280px'>
-        <input class='form-control' type='text' name='name'
-               placeholder='example.txt' required>
-    </div>
-    <button class='btn btn-primary'>Create</button>
-</form>";
+// echo "<h5 class='mt-5'>Upload Directory</h5>
+// <form method='post' enctype='multipart/form-data' action='?action=upload'>
+//     <input type='hidden' name='csrf' value='".csrf_token()."'>
+//     <input type='hidden' name='dir' value='{$dir}'>
+//     <div class='mb-3'>
+//         <input class='form-control'
+//                type='file'
+//                name='files[]'
+//                multiple
+//                webkitdirectory
+//                directory>
+//     </div>
+//     <button class='btn btn-success'>Upload</button>
+// </form>";
+// /* ---------- New file ---------- */
+// echo "<h5 class='mt-5'>Create new file</h5>
+// <form method='post' action='?action=create' class='mb-4'>
+//     <input type='hidden' name='csrf' value='".csrf_token()."'>
+//     <input type='hidden' name='dir'  value='{$dir}'>
+//     <div class='mb-3' style='max-width:280px'>
+//         <input class='form-control' type='text' name='name'
+//                placeholder='example.txt' required>
+//     </div>
+//     <button class='btn btn-primary'>Create</button>
+// </form>";
 
-/* ---------- New directory ---------- */
-echo "<h5 class='mt-5'>Create new directory</h5>
-<form method='post' action='?action=mkdir' class='mb-4'>
-    <input type='hidden' name='csrf' value='".csrf_token()."'>
-    <input type='hidden' name='dir' value='{$dir}'>
-    <div class='mb-3' style='max-width:280px'>
-        <input class='form-control' type='text' name='name'
-               placeholder='new_folder' required>
-    </div>
-    <button class='btn btn-primary'>Create Directory</button>
-</form>";
+// /* ---------- New directory ---------- */
+// echo "<h5 class='mt-5'>Create new directory</h5>
+// <form method='post' action='?action=mkdir' class='mb-4'>
+//     <input type='hidden' name='csrf' value='".csrf_token()."'>
+//     <input type='hidden' name='dir' value='{$dir}'>
+//     <div class='mb-3' style='max-width:280px'>
+//         <input class='form-control' type='text' name='name'
+//                placeholder='new_folder' required>
+//     </div>
+//     <button class='btn btn-primary'>Create Directory</button>
+// </form>";
+$safe_dir = htmlspecialchars($dir, ENT_QUOTES); ?>
+<dialog id="uploadModal" class="dh-modal">
+  <form method="post" enctype="multipart/form-data" action="?action=upload">
+    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+    <input type="hidden" name="dir" value="<?= $safe_dir ?>">
+    <h2>Upload Files</h2>
+    <input type="file" name="files[]" multiple required>
+    <menu>
+      <button type="submit">Upload</button>
+      <button type="button" onclick="closeModal('uploadModal')">Cancel</button>
+    </menu>
+  </form>
+</dialog>
 
+<dialog id="uploadDirModal" class="dh-modal">
+  <form method="post" enctype="multipart/form-data" action="?action=upload">
+    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+    <input type="hidden" name="dir" value="<?= $safe_dir ?>">
+    <h2>Upload Directory</h2>
+    <input type="file" name="files[]" multiple webkitdirectory directory required>
+    <menu>
+      <button type="submit">Upload</button>
+      <button type="button" onclick="closeModal('uploadDirModal')">Cancel</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="createFileModal" class="dh-modal">
+  <form method="post" action="?action=create">
+    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+    <input type="hidden" name="dir" value="<?= $safe_dir ?>">
+    <h2>Create New File</h2>
+    <input type="text" name="name" placeholder="example.txt" required>
+    <menu>
+      <button type="submit">Create</button>
+      <button type="button" onclick="closeModal('createFileModal')">Cancel</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="createDirModal" class="dh-modal">
+  <form method="post" action="?action=mkdir">
+    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+    <input type="hidden" name="dir" value="<?= $safe_dir ?>">
+    <h2>Create New Directory</h2>
+    <input type="text" name="name" placeholder="new_folder" required>
+    <menu>
+      <button type="submit">Create</button>
+      <button type="button" onclick="closeModal('createDirModal')">Cancel</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="renameModal" class="dh-modal">
+  <form method="post" action="?action=rename">
+    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+    <input type="hidden" name="dir" value="<?= $safe_dir ?>">
+    <input type="hidden" name="oldname" id="rename-oldname">
+    <h2>Rename</h2>
+    <label>New name:</label>
+    <input type="text" name="newname" id="rename-newname" required>
+    <menu>
+      <button type="submit">Rename</button>
+      <button type="button" onclick="closeModal('renameModal')">Cancel</button>
+    </menu>
+  </form>
+</dialog>
+
+
+<script>
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.showModal();
+}
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.close();
+}
+function toggleDropdown() {
+  const dropdown = document.getElementById('fileToolsDropdown');
+  dropdown.classList.toggle('open');
+  dropdown.style.display = dropdown.classList.contains('open') ? 'block' : 'none';
+}
+function showRenameDialog(oldName) {
+  document.getElementById('rename-oldname').value = oldName;
+  document.getElementById('rename-newname').value = oldName;
+  openModal('renameModal');
+}
+
+</script>
+
+
+<?php
 render_footer();
 ?>

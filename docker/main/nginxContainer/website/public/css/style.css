@@ -326,8 +326,8 @@ input[type="password"]:focus {
   box-sizing: border-box;
   display: block;
   width: 100%;
-  padding: 0.5rem 2rem; /* ⬅️ slightly reduced vertical padding */
-  line-height: 1.5;     /* ✅ prevents Firefox oversizing */
+  padding: 0.5rem 2rem;
+  line-height: 1.5;
   font-size: 1rem;
   font-family: var(--font-family);
   color: var(--text-color);

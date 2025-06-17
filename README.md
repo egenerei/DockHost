@@ -9,7 +9,6 @@ technologies. Its main goal is to provide users with an isolated, secure, and se
 managed web hosting environment without requiring advanced system
 administration knowledge.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![MadeWith](https://img.shields.io/badge/Made%20with-Love-red)
 

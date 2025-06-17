@@ -172,6 +172,8 @@ ansible-playbook main.yml -K
 
 ## 🧪 Usage
 
+### Administrator
+
 After deploying the project, navigate to your domain. (you can see my server running it at https://dockhost.online)
 
 - To administrate the files, logs etc, go to your domain/files (e.g. example.org/files) and use the credentials you indicated in installation.sh
@@ -198,6 +200,56 @@ After deploying the project, navigate to your domain. (you can see my server run
 
 ![alt text](readmeImages/image10.png)
 
+### Clients
+
+As a client you must first register using the Register form. 
+
+![alt text](readmeImages/image11.png)
+
+This first form creates you user.
+
+![alt text](readmeImages/image12.png)
+
+The second form will configurate your subdomain and database password access (remember you have a full fledged MariaDB accessible only through the website you host in DockHost)
+
+![alt text](readmeImages/image13.png)
+
+After registering correctly, you'll be presented with your administration panel. Here you can upload or create the the files/directories for your website.
+
+![alt text](readmeImages/image14.png)
+
+![alt text](readmeImages/image15.png)
+
+If you decide to create a file (html and php supported), you will be presented with a test editor built-in the website.
+
+![alt text](readmeImages/image16.png)
+
+Write and hit Save at the bottom
+
+![alt text](readmeImages/image17.png)
+
+Once the Save is confirmed, navigate to your subdomain.domain.whatever
+
+![alt text](readmeImages/image18.png)
+
+![alt text](readmeImages/image19.png)
+
+To access phpmyadmin, just type your website subdomain.domain.whatever/phpmyadmin and use
+
+- User: **root**
+- Password: **password-set-in-website-config-form**
+
+![alt text](readmeImages/image20.png)
+
+To access mariadb for php, create a pdo object in a document inside your website with these settings:
+
+- User: **root**
+- Password: **password-set-in-website-config-form**
+- Server: **mariadbyoursubdomain**
+- Port (not needed): **3306**
+
+![alt text](readmeImages/image21.png)
+
 ---
 
 ## 🛠️ Technologies
@@ -209,7 +261,8 @@ After deploying the project, navigate to your domain. (you can see my server run
 
 ## 📜 License
 
-This project is licensed under the MIT License. See `LICENSE` for more information.
+
+Read the [LICENSE file](./LICENSE)
 
 ---
 

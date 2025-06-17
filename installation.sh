@@ -230,7 +230,7 @@ MAX_RETRIES=6
 SLEEP_INTERVAL=10
 inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
     NEW_PATH="\$WATCH_DIR/\$NEW_ENTRY"
-    if [ -d "\$NEW_PATH" ]; thenimage7.png
+    if [ -d "\$NEW_PATH" ]; then
         echo "\$(date) - Detected new directory: \$NEW_PATH" >> "\$LOG_FILE"
         ATTEMPT=1
         while [ \$ATTEMPT -le \$MAX_RETRIES ]; do
@@ -244,7 +244,7 @@ inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
                     echo "\$(date) - Client \$safeUsername READY" >> "\$LOG_FILE"
                 )
                 break
-            elseimage7.png
+            else
                 echo "\$(date) - Compose file not found in \$NEW_PATH (attempt \$ATTEMPT)" >> "\$LOG_FILE"
                 sleep "\$SLEEP_INTERVAL"
                 ((ATTEMPT++))

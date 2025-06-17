@@ -16,17 +16,6 @@
         <li><a href="/index.php">Home</a></li>
         <?php if (isset($_SESSION['login'])): ?>
             <li><a href="admin.php">Administration</a></li>
-            <?php if (strpos($_SERVER['REQUEST_URI'], '/admin.php') !== false): ?>
-                <li class="dh-nav-item dropdown">
-                    <a href="#" class="dropdown-toggle-btn" onclick="toggleDropdown(); return false;">Manage Files ▾</a>
-                    <ul class="dropdown-menu" id="fileToolsDropdown">
-                        <li><button onclick="openModal('uploadModal')">Upload Files</button></li>
-                        <li><button onclick="openModal('uploadDirModal')">Upload Directory</button></li>
-                        <li><button onclick="openModal('createFileModal')">Create File</button></li>
-                        <li><button onclick="openModal('createDirModal')">Create Directory</button></li>
-                    </ul>
-                </li>
-            <?php endif; ?>
             <li><a href="logout.php">Logout</a></li>
         <?php else: ?>
             <li><a href="login.php">Login</a></li>
@@ -34,7 +23,25 @@
         <?php endif; ?>
     </ul>
 </nav>
+<?php
 
+$uri_matches_admin = strpos($_SERVER['REQUEST_URI'], '/admin.php') !== false;
+$not_editing_file = !isset($_GET['action']) || $_GET['action'] !== 'edit';
+
+if ($uri_matches_admin && $not_editing_file): ?>
+    <nav class="dh-sub-navbar">
+        <div class="dh-sub-actions centered">
+            <button onclick="openModal('uploadModal')" class="btn btn-outline">📤 Upload Files</button>
+            <button onclick="openModal('createFileModal')" class="btn btn-outline">📝 Create File</button>
+            <button onclick="openModal('uploadDirModal')" class="btn btn-outline">📁 Upload Directory</button>
+            <button onclick="openModal('createDirModal')" class="btn btn-outline">📂 Create Directory</button>
+            <?php if (isset($client_domain)): ?>
+                <a href="https://<?= htmlspecialchars($client_domain) ?>" class="btn btn-outline">🌐 Visit your Site</a>
+                <a href="https://<?= htmlspecialchars($client_domain_phpmyadmin) ?>" class="btn btn-outline">🛠 phpMyAdmin</>
+            <?php endif; ?>
+        </div>
+    </nav>
+<?php endif; ?>
 <script>
 /* toggle the mobile menu */
 document.querySelector('.dh-nav-toggle')?.addEventListener('click', (btn) => {

@@ -173,33 +173,24 @@ if (isset($_GET['msg']) && $_GET['msg'] === 'save_ok') {
     echo "<div class='alert alert-success'>File saved</div>";
 }
 
-/* ---- directory selector (with file name) ---- */
-echo "<form class='mb-4'>
-    <label class='form-label'>Select directory:</label>
-    <select name='dir'
-            class='form-select w-auto d-inline-block me-2'
-            onchange='this.form.submit()'>";
-foreach (breadcrumb_options($GLOBALS['ALLOWED_DIRS'], $dir, $file) as $opt) {
-    list($val, $label, $disabled) = $opt;
-    $sel = ($val === $dir) ? 'selected' : '';
-    $dis = $disabled ? 'disabled' : '';
-    echo "<option value='".htmlspecialchars($val ?? '')."' $sel $dis>".htmlspecialchars($label)."</option>";
-}
-echo "</select></form>";
-
 $escaped = htmlspecialchars($contents, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 echo "<form class='full-width-form' method='post' action='?action=save'>
     <input type='hidden' name='csrf' value='".csrf_token()."'>
     <input type='hidden' name='dir'  value='".htmlspecialchars($dir,  ENT_QUOTES)."'>
     <input type='hidden' name='file' value='".htmlspecialchars($file, ENT_QUOTES)."'>
     <div class='mb-3'>
-        <label class='form-label fw-bold'>Editing: {$file}</label>
-        <textarea id='editor' name='contents' class='form-control'
-                  rows='22' spellcheck='false'
-                  style='font-family:monospace'>{$escaped}</textarea>
+        <div class='d-flex justify-content-between align-items-center mb-2'>
+            <label class='form-label fw-bold mb-0'>Editing: {$file}</label>
+            <div>
+                <button class='btn btn-primary me-2'>Save</button>
+                <a href='?dir=".urlencode($dir)."' class='btn btn-secondary'>Exit file editor</a>
+            </div>
+        </div>
+        <div style='width: 100%;'>
+            <textarea id='editor' name='contents' class='form-control full-width-textarea'
+                rows='30' spellcheck='false'>{$escaped}</textarea>
+        </div>
     </div>
-    <button class='btn btn-primary me-2'>Save</button>
-    <a href='?dir=".urlencode($dir)."' class='btn btn-secondary'>Exit file editor</a>
 </form>
 
 <script>
@@ -473,8 +464,11 @@ function render_header(string $title = 'PHP File Manager'): void
 
         <title>{$title}</title>
     </head><body class='bg-light'>";
+    $login = unserialize($_SESSION['login']);
+    $subdomain = $login->get_subdomain();
+    $client_domain = $subdomain . '.'. get_domain();
+    $client_domain_phpmyadmin = $client_domain.'/phpmyadmin';
     include("../includes/navbars/links_navbar.php");
-    // include("../includes/navbars/function_navbar.php");
     echo "<main class='container py-4'>";
 }
 
@@ -535,10 +529,6 @@ foreach (breadcrumb_options($GLOBALS['ALLOWED_DIRS'], $dir, $file) as $opt) {
     echo "<option value='$val' $sel $dis>$label</option>";
 }
 echo "</select></form>";
-
-
-
-
 
 /* ---------- FILE TABLE ---------- */
 echo "<div class='table-responsive'><table class='table table-striped'>
@@ -632,58 +622,6 @@ foreach ($files as $file) {
 
 echo "</tbody></table></div>";
 
-// // Upload form
-// echo "<h5 class='mt-5'>Upload Files</h5>
-// <form method='post' enctype='multipart/form-data' action='?action=upload'>
-//     <input type='hidden' name='csrf' value='".csrf_token()."'>
-//     <input type='hidden' name='dir' value='{$dir}'>
-//     <div class='mb-3'>
-//         <input class='form-control'
-//                type='file'
-//                name='files[]'
-//                multiple
-//                directory>
-//     </div>
-//     <button class='btn btn-success'>Upload</button>
-// </form>";
-
-// echo "<h5 class='mt-5'>Upload Directory</h5>
-// <form method='post' enctype='multipart/form-data' action='?action=upload'>
-//     <input type='hidden' name='csrf' value='".csrf_token()."'>
-//     <input type='hidden' name='dir' value='{$dir}'>
-//     <div class='mb-3'>
-//         <input class='form-control'
-//                type='file'
-//                name='files[]'
-//                multiple
-//                webkitdirectory
-//                directory>
-//     </div>
-//     <button class='btn btn-success'>Upload</button>
-// </form>";
-// /* ---------- New file ---------- */
-// echo "<h5 class='mt-5'>Create new file</h5>
-// <form method='post' action='?action=create' class='mb-4'>
-//     <input type='hidden' name='csrf' value='".csrf_token()."'>
-//     <input type='hidden' name='dir'  value='{$dir}'>
-//     <div class='mb-3' style='max-width:280px'>
-//         <input class='form-control' type='text' name='name'
-//                placeholder='example.txt' required>
-//     </div>
-//     <button class='btn btn-primary'>Create</button>
-// </form>";
-
-// /* ---------- New directory ---------- */
-// echo "<h5 class='mt-5'>Create new directory</h5>
-// <form method='post' action='?action=mkdir' class='mb-4'>
-//     <input type='hidden' name='csrf' value='".csrf_token()."'>
-//     <input type='hidden' name='dir' value='{$dir}'>
-//     <div class='mb-3' style='max-width:280px'>
-//         <input class='form-control' type='text' name='name'
-//                placeholder='new_folder' required>
-//     </div>
-//     <button class='btn btn-primary'>Create Directory</button>
-// </form>";
 $safe_dir = htmlspecialchars($dir, ENT_QUOTES); ?>
 <dialog id="uploadModal" class="dh-modal">
   <form method="post" enctype="multipart/form-data" action="?action=upload">
@@ -716,7 +654,7 @@ $safe_dir = htmlspecialchars($dir, ENT_QUOTES); ?>
     <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
     <input type="hidden" name="dir" value="<?= $safe_dir ?>">
     <h2>Create New File</h2>
-    <input type="text" name="name" placeholder="example.txt" required>
+    <input type="text" name="name" placeholder="index.php" required>
     <menu>
       <button type="submit">Create</button>
       <button type="button" onclick="closeModal('createFileModal')">Cancel</button>
@@ -774,7 +712,6 @@ function showRenameDialog(oldName) {
 }
 
 </script>
-
 
 <?php
 render_footer();

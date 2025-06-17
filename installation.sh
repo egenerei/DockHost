@@ -2,6 +2,8 @@
 
 set -e
 
+echo "========================================================================================================="
+echo "Checking if ansible-core, docker.community plugin and apache are installed"
 if ! command -v ansible >/dev/null 2>&1; then
   echo "Error: ansible command not found. Please install Ansible before running this script." >&2
   exit 1
@@ -24,7 +26,9 @@ fi
 
 echo "htpasswd is installed"
 
-# Prompt for the server IP and SSH port 
+# Prompt for the server IP and SSH port
+echo "========================================================================================================="
+echo "Server SSH connection configuration"
 read -rp "Enter the server IP address to install DockHost: " SERVER_IP
 read -rp "Enter the SSH port of the server (default 22): " SSH_PORT
 SSH_PORT=${SSH_PORT:-22}  # Default to 22 if input is empty
@@ -33,6 +37,8 @@ read -rp "Enter the SSH user with sudo permissions on the server (e.g., ubuntu):
 # Prompt for the SSH private key file path (not required but recommended)
 read -rp "Enter the path to your SSH private key on this system (default: ~/.ssh/id_ed25519): " PRIVATE_KEY
 PRIVATE_KEY=${PRIVATE_KEY:-~/.ssh/id_ed25519}  # Default if blank
+echo "========================================================================================================="
+echo "File manager credentials for the administrator"
 # Database parameters for the clients database (for mariadb/mysql)
 #read -rp "Main clients database name for DockHost: " DB_NAME
 #read -rsp "Main client database password for DockHost: " DB_PASSWORD; echo
@@ -40,6 +46,8 @@ PRIVATE_KEY=${PRIVATE_KEY:-~/.ssh/id_ed25519}  # Default if blank
 read -rp "Enter username for the main filemanager: " USERNAME
 read -rsp "Enter password the main filemanager: " PASSWORD; echo
 #Domain settings for the project
+echo "========================================================================================================="
+echo "Domain settings"
 read -rp "Domain name (e.g example.com): " DOMAIN
 read -rp "Do you have an SSL certificate and private key for your domain? [y/N]: " HAS_CERT
 
@@ -159,6 +167,8 @@ server {
     ssl_session_cache shared:SSL:10m;
     client_max_body_size 100M;
     root /usr/share/nginx/html/public;
+    access_log /var/log/nginx/${DOMAIN}.access.log;
+    error_log /var/log/nginx/${DOMAIN}.error.log warn;
     location / {
         index index.php;
     }
@@ -175,12 +185,16 @@ server {
 server {
     listen 80;
     server_name ${DOMAIN};
+    access_log /var/log/nginx/${DOMAIN}.http.access.log;
+    error_log /var/log/nginx/${DOMAIN}.http.error.log warn;
     return 301 https://\$host\$request_uri;
 }
 server {
     listen 443 ssl;
     server_name *.${DOMAIN};
     resolver 127.0.0.11;
+    access_log /var/log/nginx/subdomains.${DOMAIN}.access.log;
+    error_log /var/log/nginx/subdomains.${DOMAIN}.error.log warn;
     location / {
         proxy_pass http://\$host\$request_uri;
     }
@@ -208,16 +222,15 @@ EOF
 
 echo "Ansible configuration written to ansible.cfg"
 
-# Write the Ansible config
 cat > autoDockerUp/docker-compose-watch.sh <<EOF
 #!/bin/bash
 WATCH_DIR="/docker/clients"
-LOG_FILE="/docker/main/nginxContainer/website/logs/dockhost_dockerinfo.log"
+LOG_FILE="/docker/main/nginxContainer/website/logs/auto_docker_up.log"
 MAX_RETRIES=6
 SLEEP_INTERVAL=10
 inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
     NEW_PATH="\$WATCH_DIR/\$NEW_ENTRY"
-    if [ -d "\$NEW_PATH" ]; then
+    if [ -d "\$NEW_PATH" ]; thenimage7.png
         echo "\$(date) - Detected new directory: \$NEW_PATH" >> "\$LOG_FILE"
         ATTEMPT=1
         while [ \$ATTEMPT -le \$MAX_RETRIES ]; do
@@ -231,7 +244,7 @@ inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
                     echo "\$(date) - Client \$safeUsername READY" >> "\$LOG_FILE"
                 )
                 break
-            else
+            elseimage7.png
                 echo "\$(date) - Compose file not found in \$NEW_PATH (attempt \$ATTEMPT)" >> "\$LOG_FILE"
                 sleep "\$SLEEP_INTERVAL"
                 ((ATTEMPT++))
@@ -243,3 +256,5 @@ inotifywait -m -e create --format "%f" "\$WATCH_DIR" | while read NEW_ENTRY; do
     fi
 done
 EOF
+
+echo "docker-compose-watch.service written to autoDockerUp/docker-compose-watch.service"

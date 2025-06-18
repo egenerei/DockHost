@@ -1,13 +1,11 @@
-## HOST from where we launch ansible
-- Install ansible-core
-- Install ansible-galaxy collection install community.docker
-
 # 📦 DockHost
 
 DockHost is an automated web hosting platform developed using Docker container
 technologies. Its main goal is to provide users with an isolated, secure, and self-
 managed web hosting environment without requiring advanced system
 administration knowledge.
+
+Visit [DockHost](https://dockhost.online) to test the project and deploy a website!
 
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![MadeWith](https://img.shields.io/badge/Made%20with-Love-red)
@@ -222,7 +220,7 @@ After registering correctly, you'll be presented with your administration panel.
 
 ![domain /admin.php](readmeImages/image15.png)
 
-If you decide to create a file (html and php supported), you will be presented with a test editor built-in the website.
+If you decide to create a file, you will be presented with a test editor built-in the website.
 
 ![domain /admin.php Create File](readmeImages/image16.png)
 

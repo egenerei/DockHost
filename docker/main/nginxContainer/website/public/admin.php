@@ -46,28 +46,46 @@ function verify_csrf(): void
     }
 }
 
+#declare(strict_types=1);
+
+/**
+ * Resolve $target inside one of the $GLOBALS['ALLOWED_DIRS'].
+ * - Follows symlinks correctly.
+ * - Always returns a canonical absolute path.
+ * - Throws verb-specific HTTP errors instead of exit().
+ */
 function safe_path(string $dir, string $file = ''): string
 {
-    // Canonicalise the *target* path first
-    $target = $file === ''
+    // Compose candidate, resolve it, bail early if the path is invalid
+    $candidate = ($file === '')
         ? $dir
         : rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($file, DIRECTORY_SEPARATOR);
-    $realTarget = realpath($target);
-    if ($realTarget === false) {
+
+    $realCandidate = realpath($candidate);
+    if ($realCandidate === false) {
         http_response_code(404);
-        exit('Not found');
+        throw new RuntimeException('Path not found');
     }
-    // Check the canonical path against every allowed root
+
+    /* Every allowed root must itself be canonicalised because admins might
+       have added a symlink inside the whitelist (e.g. /srv/clients ➜ /data/clients) */
     foreach ($GLOBALS['ALLOWED_DIRS'] as $root) {
-        $rootPath = rtrim(realpath($root), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        if (strpos($realTarget . DIRECTORY_SEPARATOR, $rootPath) === 0) {
-            return $realTarget;          // ✅ inside an allowed tree
+        $rootReal = realpath($root);
+        if ($rootReal === false) {
+            continue; // skip mis-configured root silently; you may choose to log
+        }
+
+        $rootReal = rtrim($rootReal, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (str_starts_with($realCandidate . DIRECTORY_SEPARATOR, $rootReal)) {
+            return $realCandidate;     // ✅ legit
         }
     }
 
     http_response_code(403);
-    exit('Access denied');
+    throw new RuntimeException('Access denied');
 }
+
 
 function human_filesize(int $bytes, int $decimals = 2): string
 {
@@ -158,7 +176,7 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         http_response_code(404);
         exit('File not found');
     }
-    if (filesize($path) > 1_048_576) {     // 1 MiB soft limit
+    if (filesize($path) > 10 * 1024 * 1024) {     // 10 MiB soft limit
         http_response_code(413);
         exit('File too large to edit in browser');
     }
@@ -579,6 +597,12 @@ foreach ($files as $file) {
         $escDir  = htmlspecialchars($dir,  ENT_QUOTES);
         $escName = htmlspecialchars($file, ENT_QUOTES);
 
+        echo "<button class='btn btn-primary'
+                    type='button'
+                    onclick=\"showRenameDialog('{$escName}')\">
+                Rename
+            </button>";
+
         echo "<form method='post' action='?action=rmdir' class='d-inline me-1'>
                 <input type='hidden' name='csrf' value='".csrf_token()."'>
                 <input type='hidden' name='dir'  value='{$escDir}'>
@@ -588,12 +612,6 @@ foreach ($files as $file) {
                     Delete
                 </button>
             </form>";
-
-        echo "<button class='btn btn-primary'
-                    type='button'
-                    onclick=\"showRenameDialog('{$escFile}')\">
-                Rename
-            </button>";
     }
 
     if (is_file($path)) {
@@ -712,24 +730,7 @@ function showRenameDialog(oldName) {
 }
 
 </script>
-<script>
-function closeModalSafely(id, e) {
-  // 1 – kill the click so it never reaches the navbar
-  if (e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-  }
-  // 2 – now it’s safe to hide
-  document.getElementById(id)?.close();
-}
 
-// Attach to every “Cancel” button automatically
-document.querySelectorAll('dialog button[type="button"]').forEach(btn => {
-  const dlg = btn.closest('dialog');
-  if (!dlg) return;
-  btn.addEventListener('click', e => closeModalSafely(dlg.id, e));
-});
-</script>
 <?php
 render_footer();
 ?>

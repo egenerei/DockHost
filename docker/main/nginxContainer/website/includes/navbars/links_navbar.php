@@ -37,7 +37,7 @@ if ($uri_matches_admin && $not_editing_file): ?>
             <button onclick="openModal('createDirModal')" class="btn btn-outline">📂 Create Directory</button>
             <?php if (isset($client_domain)): ?>
                 <a href="https://<?= htmlspecialchars($client_domain) ?>" class="btn btn-outline">🌐 Visit your Site</a>
-                <a href="https://<?= htmlspecialchars($client_domain_phpmyadmin) ?>" class="btn btn-outline">🛠 phpMyAdmin</>
+                <a href="https://<?= htmlspecialchars($client_domain_phpmyadmin) ?>" class="btn btn-outline">🛠 phpMyAdmin</a>
             <?php endif; ?>
         </div>
     </nav>

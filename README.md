@@ -219,7 +219,7 @@ After registering correctly, you'll be presented with your administration panel.
 
 ![domain /admin.php](readmeImages/image15.png)
 
-If you decide to create a file (html and php supported), you will be presented with a test editor built-in the website.
+If you decide to create a file, you will be presented with a test editor built-in the website.
 
 ![domain /admin.php Create File](readmeImages/image16.png)
 

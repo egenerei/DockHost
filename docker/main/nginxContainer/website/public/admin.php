@@ -712,7 +712,24 @@ function showRenameDialog(oldName) {
 }
 
 </script>
+<script>
+function closeModalSafely(id, e) {
+  // 1 – kill the click so it never reaches the navbar
+  if (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+  // 2 – now it’s safe to hide
+  document.getElementById(id)?.close();
+}
 
+// Attach to every “Cancel” button automatically
+document.querySelectorAll('dialog button[type="button"]').forEach(btn => {
+  const dlg = btn.closest('dialog');
+  if (!dlg) return;
+  btn.addEventListener('click', e => closeModalSafely(dlg.id, e));
+});
+</script>
 <?php
 render_footer();
 ?>

@@ -171,6 +171,9 @@ ansible-playbook main.yml -K
 
 ## 🧪 Usage
 
+You can register in my deployment to test how a client's website works
+[dockhost.online](https://dockhost.online)
+
 ### Administrator
 
 After deploying the project, navigate to your domain. (you can see my server running it at https://dockhost.online)
@@ -231,7 +234,7 @@ Once the Save is confirmed, exit the file editor and navigate to your subdomain.
 
 ![domain /admin.php Builtin File Editor File Saved](readmeImages/image18.png)
 
-![domain /admin.php Visit your Site](image.png)
+![domain /admin.php Visit your Site](readmeImages/image22.png)
 
 ![subdomain website](readmeImages/image19.png)
 
